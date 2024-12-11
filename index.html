@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Analog Interface</title>
+    <style>
+        /* General styles for the page */
+        body {
+            background-color: black;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            transition: all 0.5s ease; /* Smooth transition for resizing */
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        /* Normal scale styling for second video and startup screen */
+        .normal-scale {
+            width: 60%; /* Shrinks the container */
+            height: auto; /* Maintains aspect ratio */
+        }
+
+        #video2 {
+            width: 20%; /* Explicit size for the second video */
+            height: auto;
+            object-fit: contain; /* Ensures the video scales proportionally */
+        }
+
+        #screen {
+            display: none;
+            flex-direction: column;
+            align-items: center; /* Centers content horizontally */
+            justify-content: center; /* Centers content vertically */
+            padding: 20px;
+            z-index: 1;
+            border: 3px solid #00FF41;
+            box-shadow: 0 0 15px #00FF41;
+            background: radial-gradient(circle, #000000 0%, #001B00 80%);
+            width: 60%;
+            margin: 0 auto;
+            height: 60%; /* Added height to help center the content */
+        }
+
+        #screen .logo img {
+            width: 350px; /* Adjust this to the desired width */
+            height: auto; /* Maintains aspect ratio */
+            margin-bottom: 20px; /* Adds spacing below the image */
+        }
+
+        .typewriter {
+            color: #00FF41; /* Matches the green font style */
+            font-family: 'Courier New', Courier, monospace; /* Ensures consistency */
+            white-space: pre-wrap;
+            overflow: hidden;
+            border-right: 2px solid #00FF41;
+            width: 0;
+            animation: typing 4s steps(30, end), blink-caret 0.7s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #00FF41; }
+        }
+
+        .input-container {
+            display: none; /* Initially hidden */
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        #user-input {
+            background: black;
+            color: #00FF41;
+            border: 2px solid #00FF41;
+            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .retro-text {
+            text-shadow: 0 0 5px #00FF41, 0 0 10px #00FF41, 0 0 15px #00FF41;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video container for startup videos -->
+    <div id="video-container">
+        <video id="video1" src="B+W.mp4" autoplay muted></video>
+        <video id="video2" src="secondclip.mp4" muted style="display: none;"></video>
+    </div>
+
+    <!-- Screen container for startup sequence -->
+    <div id="screen">
+        <div class="logo">
+            <img src="chatlogo.png" alt="Logo">
+        </div>
+        <div class="typewriter">
+            Booting up system...  
+            Initializing hardware...  
+            Loading software modules...  
+            Connecting to mainframe...  
+            Welcome, user.
+        </div>
+        <div class="input-container" id="input-container">
+            > <input id="user-input" type="text" placeholder="Type your command here..." autofocus />
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const video1 = document.getElementById('video1');
+            const video2 = document.getElementById('video2');
+            const videoContainer = document.getElementById('video-container');
+            const screen = document.getElementById('screen');
+
+            // Play the first video, then the second, and finally the startup sequence
+            video1.onended = () => {
+                video1.pause(); // Stop the first video
+                video1.currentTime = 0; // Reset playback position
+                video1.style.display = 'none'; // Hide the first video
+                video2.style.display = 'block'; // Show the second video
+                videoContainer.classList.add('normal-scale'); // Shrink the container
+                video2.play(); // Start playing the second video
+            };
+
+            video2.onended = () => {
+                video2.pause(); // Stop the second video
+                video2.currentTime = 0; // Reset playback position
+                videoContainer.style.display = 'none'; // Hide the video container
+                screen.style.display = 'flex'; // Show the main screen
+                startStartupSequence();
+            };
+
+            function startStartupSequence() {
+                const inputField = document.getElementById('user-input');
+                const inputContainer = document.getElementById('input-container');
+
+                // Show input field after the typewriter animation
+                setTimeout(() => {
+                    const typewriter = document.querySelector('.typewriter');
+                    typewriter.style.borderRight = "none"; // Remove the blinking caret
+                    inputContainer.style.display = "block"; // Show the input field
+                }, 4000);
+            }
+        });
+    </script>
+</body>
+</html>
