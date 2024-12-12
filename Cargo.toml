@@ -1,0 +1,13 @@
+[package]
+name = "retro-gpt-backend"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "retro-gpt-backend"
+path = "backend/main.rs"
+
+[dependencies]
+tiny_http = "0.12.0"
+url = "2.5.4"
+urlencoding = "2.1.3"
