@@ -2,6 +2,7 @@ mod log;
 
 pub use log::log;
 
+use log::Logger;
 use serde_json::json;
 use std::borrow::Cow;
 use tiny_http::{Header, Request, Response, Server, StatusCode};
@@ -27,7 +28,9 @@ pub fn run_server(cfg: BEConfig) {
             PrimReqWrapper(req, &cfg)
                 .try_into()
                 .and_then(validate_request)
-                .inspect(|r| log(r))
+                .inspect(|r| {
+                    let _ = cfg.logger.info(r);
+                })
                 .and_then(build_response_ok)
                 .inspect_err(|e| log(e))
                 .unwrap_or_else(build_response_err)
@@ -38,7 +41,7 @@ pub fn run_server(cfg: BEConfig) {
 
 struct PrimReqWrapper<'a>(Request, &'a BEConfig);
 
-struct BERequest<'a> {
+struct DBReq<'a> {
     req: Request,
     url: Url,
     task: TaskType,
@@ -49,9 +52,9 @@ enum TaskType {
     GptQuery,
 }
 
-impl<'a> TryFrom<PrimReqWrapper<'a>> for BERequest<'a> {
+impl<'a> TryFrom<PrimReqWrapper<'a>> for DBReq<'a> {
     type Error = BEReqError<'a>;
-    fn try_from(rw: PrimReqWrapper<'a>) -> Result<BERequest<'a>, Self::Error> {
+    fn try_from(rw: PrimReqWrapper<'a>) -> Result<DBReq<'a>, Self::Error> {
         let req = rw.0;
         let cfg = rw.1;
         let (req, url) = parse_req_url(req, cfg)?;
@@ -96,7 +99,6 @@ fn parse_req_task<'a>(
 
 struct ValidatedBERequest<'a> {
     req: Request,
-    url: Url,
     task: TaskData,
     cfg: &'a BEConfig,
 }
@@ -105,18 +107,17 @@ enum TaskData {
     GptQuery { query: String },
 }
 
-fn validate_request<'a>(req: BERequest<'a>) -> Result<ValidatedBERequest<'a>, BEReqError<'a>> {
+fn validate_request<'a>(req: DBReq<'a>) -> Result<ValidatedBERequest<'a>, BEReqError<'a>> {
     let (task_data, req) = parse_url_task_data(req)?;
     let req = parse_url_task_method(req)?;
     Ok(ValidatedBERequest {
         req: req.req,
-        url: req.url,
         task: task_data,
         cfg: req.cfg,
     })
 }
 
-fn parse_url_task_data(req: BERequest) -> Result<(TaskData, BERequest), BEReqError> {
+fn parse_url_task_data(req: DBReq) -> Result<(TaskData, DBReq), BEReqError> {
     match req.task {
         TaskType::GptQuery => match req.url.query_pairs().filter(|(k, _)| k == "query").next() {
             Some((_, v)) => Ok((
@@ -149,7 +150,7 @@ fn parse_url_task_data(req: BERequest) -> Result<(TaskData, BERequest), BEReqErr
     }
 }
 
-fn parse_url_task_method(req: BERequest) -> Result<BERequest, BEReqError> {
+fn parse_url_task_method(req: DBReq) -> Result<DBReq, BEReqError> {
     match req.task {
         TaskType::GptQuery => match req.req.method() {
             tiny_http::Method::Get => Ok(req),
@@ -262,10 +263,24 @@ fn build_response_err<'a>(e: BEReqError<'a>) -> BEResponse<'a> {
 pub struct BEConfig {
     port: i32,
     json_header: Header,
+    logger: log::Logger,
 }
 
 pub fn get_cfg() -> Option<BEConfig> {
     let port = 1985;
     let json_header = Header::from_bytes("Content-Type", "application/json").ok()?;
-    Some(BEConfig { port, json_header })
+    let logger = Logger {
+        cfg: log::LogCfg {
+            debug: vec![Box::new(std::io::stderr())],
+            info: vec![Box::new(std::io::stderr())],
+            warn: vec![Box::new(std::io::stderr())],
+            error: vec![Box::new(std::io::stderr())],
+        },
+    };
+    let _ = logger.info("Got config");
+    Some(BEConfig {
+        port,
+        json_header,
+        logger,
+    })
 }
