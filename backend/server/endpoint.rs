@@ -35,9 +35,9 @@ pub async fn chat_logo() -> ServiceResult {
 }
 
 pub async fn bwvid() -> ServiceResult {
-    static_file("bw.mp4", "video/mp4").await
+    static_file("static/tmp_bw.mp4", "video/mp4").await
 }
 
 pub async fn secondclip() -> ServiceResult {
-    static_file("secondclip.mp4", "video/mp4").await
+    static_file("static/tmp_secondclip.mp4", "video/mp4").await
 }
