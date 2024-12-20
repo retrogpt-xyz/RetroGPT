@@ -1,0 +1,16 @@
+[server]
+port = 8080
+
+[logging]
+
+[logging.debug]
+dests = ["stdout", "logs/debug.log"]
+
+[logging.error]
+dests = ["stderr", "logs/error.log"]
+
+[logging.warning]
+dests = ["stderr", "logs/warn.log"]
+
+[logging.info]
+dests = ["stdout", "logs/info.log"]
