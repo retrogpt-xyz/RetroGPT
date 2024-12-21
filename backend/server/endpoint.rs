@@ -7,7 +7,7 @@ use tokio::{fs::File, io::AsyncReadExt};
 pub type ServiceResult =
     Result<Response<Full<Bytes>>, Box<dyn std::error::Error + Sync + Send + 'static>>;
 
-async fn static_file(path: impl AsRef<Path>, content_type: &'static str) -> ServiceResult {
+async fn static_file(path: impl AsRef<Path>, content_type: &str) -> ServiceResult {
     let mut bytes = Vec::new();
     File::open(path)
         .await
@@ -22,7 +22,6 @@ async fn static_file(path: impl AsRef<Path>, content_type: &'static str) -> Serv
 }
 
 pub async fn home() -> ServiceResult {
-    println!("running home fn");
     static_file("static/index.html", "text/html").await
 }
 
@@ -35,7 +34,7 @@ pub async fn chat_logo() -> ServiceResult {
 }
 
 pub async fn bwvid() -> ServiceResult {
-    static_file("static/tmp_bw.mp4", "video/mp4").await
+    static_file("static/bw.mp4", "video/mp4").await
 }
 
 pub async fn secondclip() -> ServiceResult {

@@ -1,6 +1,4 @@
-pub mod config;
-pub mod logging;
 pub mod server;
+mod config;
 
-pub use config::Cfg;
 pub use server::run_server;
