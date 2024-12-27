@@ -1,4 +1,4 @@
-FROM rust:latest AS builder
+FROM rust:latest AS backend-builder
 
 WORKDIR /app
 
@@ -15,12 +15,20 @@ RUN touch backend/main.rs && touch backend/lib.rs
 
 RUN cargo build --release
 
+FROM node:latest AS frontend-builder
+
+WORKDIR /app
+
+COPY . .
+RUN npm install
+RUN npm run build
+
 FROM archlinux:latest AS app
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/retro_gpt_backend .
-COPY static/ static/
+COPY --from=backend-builder /app/target/release/retro_gpt_backend .
+COPY --from=frontend-builder /app/static/ static/
 COPY serverconf.toml .
 
 CMD ["./retro_gpt_backend"]

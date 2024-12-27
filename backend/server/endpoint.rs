@@ -1,42 +1,31 @@
 use std::path::Path;
 
 use http_body_util::Full;
-use hyper::{body::Bytes, header::CONTENT_TYPE, Response, StatusCode};
+use hyper::{body::Bytes, header::CONTENT_TYPE, Request, Response, StatusCode};
 use tokio::{fs::File, io::AsyncReadExt};
 
 pub type ServiceResult =
     Result<Response<Full<Bytes>>, Box<dyn std::error::Error + Sync + Send + 'static>>;
 
-async fn static_file(path: impl AsRef<Path>, content_type: &str) -> ServiceResult {
+pub async fn static_file(path: impl AsRef<Path>, content_type: &str) -> ServiceResult {
     let mut bytes = Vec::new();
-    File::open(path)
-        .await
-        .inspect_err(|e| println!("{e}"))?
-        .read_to_end(&mut bytes)
-        .await
-        .inspect_err(|e| println!("{e}"))?;
+    File::open(path).await?.read_to_end(&mut bytes).await?;
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header(CONTENT_TYPE, content_type)
         .body(Full::new(Bytes::from(bytes)))?)
 }
 
-pub async fn home() -> ServiceResult {
-    static_file("static/index.html", "text/html").await
-}
-
-pub async fn not_found() -> ServiceResult {
-    static_file("static/not_found.html", "text/html").await
-}
-
-pub async fn chat_logo() -> ServiceResult {
-    static_file("static/chatlogo.png", "image/png").await
-}
-
-pub async fn bwvid() -> ServiceResult {
-    static_file("static/bw.mp4", "video/mp4").await
-}
-
-pub async fn secondclip() -> ServiceResult {
-    static_file("static/tmp_secondclip.mp4", "video/mp4").await
+pub async fn static_dir(
+    dir: impl AsRef<Path>,
+    req: Request<hyper::body::Incoming>,
+) -> ServiceResult {
+    let path = dir.as_ref().join(match req.uri().path() {
+        "/" => "index.html",
+        p => &p[1..],
+    });
+    let mime_type = mime_guess::from_path(&path)
+        .first_or_octet_stream()
+        .to_string();
+    static_file(path, &mime_type).await
 }
