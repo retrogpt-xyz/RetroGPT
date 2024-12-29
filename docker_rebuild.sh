@@ -1,7 +1,8 @@
 #!/bin/bash
 
-set -x
+set -ex
 
-sudo docker compose down
-sudo docker compose up --build -d
+docker compose build
+docker compose up -d --no-build
+docker system prune -f --volumes > /dev/null 2>&1 &
 
