@@ -1,8 +1,11 @@
 import chatlogo from "../assets/chatlogo.png";
+import { Typewriter } from "./TypeWriter";
 
-export interface ChatDisplayProps {}
+export interface ChatDisplayProps {
+  msgs: string[];
+}
 
-export const ChatDisplay = ({}: ChatDisplayProps) => {
+export const ChatDisplay = ({ msgs }: ChatDisplayProps) => {
   return (
     <div
       style={{
@@ -16,25 +19,57 @@ export const ChatDisplay = ({}: ChatDisplayProps) => {
         overflow: "hidden",
       }}
     >
-      <div
+      {msgs.length === 0 ? <LogoDisplay /> : <MessageList msgs={msgs} />}
+    </div>
+  );
+};
+
+const MessageList = ({ msgs }: { msgs: string[] }) => {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        padding: "1rem",
+        overflowY: "auto",
+      }}
+    >
+      {msgs.map((msg, index) => (
+        <div
+          key={index}
+          style={{
+            marginBottom: "1rem",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+          }}
+        >
+          <Typewriter text={msg}/>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const LogoDisplay = () => {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
+      }}
+    >
+      <img
+        src={chatlogo}
         style={{
           width: "100%",
           height: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          overflow: "hidden",
+          objectFit: "contain",
         }}
-      >
-        <img
-          src={chatlogo}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-          }}
-        />
-      </div>
+      />
     </div>
   );
 };

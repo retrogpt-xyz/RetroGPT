@@ -1,7 +1,17 @@
+import { useState } from "react";
 import { ChatDisplay } from "./ChatDisplay";
 import { InputBox } from "./InputBox";
 
+const queryChat = (_: string) => {
+  return "some response from chatgpt";
+};
+
 export const MainScreenInner = () => {
+  const promptPrefix = "$ ";
+  const [msgs, setMsgs] = useState<string[]>([]);
+  const handleSubmit = (txt: string) => {
+    setMsgs([...msgs, promptPrefix + txt, queryChat(txt)]);
+  };
   return (
     <div
       style={{
@@ -18,8 +28,8 @@ export const MainScreenInner = () => {
         gap: "20px",
       }}
     >
-      <ChatDisplay />
-      <InputBox onSubmit={(msg) => alert(msg)} />
+      <ChatDisplay msgs={msgs} />
+      <InputBox onSubmit={handleSubmit} />
     </div>
   );
-}; 
+};

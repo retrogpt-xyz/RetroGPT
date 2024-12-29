@@ -17,12 +17,13 @@ RUN cargo build --release
 
 FROM node@sha256:1745a99b66da41b5ccd6f7be3810f74ddab16eb4579de10de378adb50d2e6e6f AS frontend-builder
 
-WORKDIR /app
+WORKDIR app
 
-COPY package.json ./
+COPY package.json .
 RUN npm install
 
-COPY . .
+COPY frontend/ frontend/
+COPY vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json index.html ./
 RUN npm run build
 
 FROM archlinux@sha256:58fd363480dc61d0c657768605bca3c87d5b697cb8c2fe0217aad941c6a8a508 AS app
