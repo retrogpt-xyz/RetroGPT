@@ -2,8 +2,20 @@ import { useState } from "react";
 import { ChatDisplay } from "./ChatDisplay";
 import { InputBox } from "./InputBox";
 
-const queryChat = (_: string) => {
-  return "some response from chatgpt";
+const queryChat = (prompt: string): string => {
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/gpt", false); // false makes it a blocking request
+  xhr.setRequestHeader("Content-Type", "text/plain");
+  try {
+    xhr.send(prompt);
+    if (xhr.status !== 200) {
+      throw new Error("Network response was not ok");
+    }
+    return xhr.responseText;
+  } catch (error) {
+    console.error("Error querying GPT:", error);
+    throw error;
+  }
 };
 
 export const MainScreenInner = () => {
