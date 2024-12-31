@@ -53,13 +53,13 @@ pub async fn gpt_req_inner(cfg: &Cfg, req: Request<hyper::body::Incoming>) -> su
 }
 
 pub async fn query_gpt(cfg: &Cfg, prompt: &str) -> String {
-    let client = reqwest::Client::new();
-    let res = client
+    let res = cfg
+        .client
         .post("https://api.openai.com/v1/chat/completions")
         .header("Authorization", format!("Bearer {}", cfg.api_key))
         .header("Content-Type", "application/json")
         .json(&serde_json::json!({
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o-mini",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 50
         }))

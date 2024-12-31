@@ -11,17 +11,18 @@ use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 
 pub async fn run_server() {
+    let global_cfg = Arc::new(Cfg::new());
+
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     let listener = TcpListener::bind(addr).await.unwrap();
     println!("Listening on: {}", addr);
 
-    let global_cfg = Arc::new(Cfg::new());
-
     loop {
         let (stream, _addr) = listener.accept().await.unwrap();
-
         let io = TokioIo::new(stream);
+
         let local_cfg = Arc::clone(&global_cfg);
+
         tokio::task::spawn(async move {
             http1::Builder::new()
                 .serve_connection(

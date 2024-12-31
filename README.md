@@ -13,7 +13,7 @@ $ sudo ./docker_rebuild.sh
 
 ### to run locally
 
-must have `OPENAI_API_KEY` variable defined
+must have `OPENAI_API_KEY` environment variable defined
 
 ```bash
 $ npm run build
