@@ -8,12 +8,14 @@ export const InputBox = ({ onSubmit }: InputBoxProps) => {
   const font_size = 16;
   const padding = 10;
   const init_height = 2 * padding + 3 + Math.floor((font_size - 7) / 4);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    e.target.style.height = "0px";
-    const newHeight = e.target.scrollHeight - font_size;
-    const parentHeight = e.target.parentElement?.clientHeight || Infinity;
-    e.target.style.height = `${Math.min(newHeight, parentHeight)}px`;
+    e.currentTarget.style.height = "0px";
+    const newHeight = e.currentTarget.scrollHeight - font_size;
+    const parentHeight = e.currentTarget.parentElement?.clientHeight || Infinity;
+    e.currentTarget.style.height = `${Math.min(newHeight, parentHeight)}px`;
   };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -22,6 +24,7 @@ export const InputBox = ({ onSubmit }: InputBoxProps) => {
       e.currentTarget.style.height = `${init_height}px`;
     }
   };
+
   return (
     <div
       style={{
