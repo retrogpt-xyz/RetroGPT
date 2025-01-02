@@ -29,21 +29,25 @@ pub async fn static_dir(
     static_file(path, &mime_type).await
 }
 
-pub async fn gpt_req(
+pub async fn prompt_gpt(
     cfg: &Cfg,
     req: Request<hyper::body::Incoming>,
-) -> Option<super::ServiceResult> {
+) -> Result<Request<hyper::body::Incoming>, super::ServiceResult> {
     match req.uri().path().starts_with("/api/prompt") {
-        true => Some(gpt_req_inner(cfg, req).await),
-        false => None,
+        true => Err(prompt_gpt_inner(cfg, req).await),
+        false => Ok(req),
     }
 }
 
-pub async fn gpt_req_inner(cfg: &Cfg, req: Request<hyper::body::Incoming>) -> super::ServiceResult {
+pub async fn prompt_gpt_inner(
+    cfg: &Cfg,
+    req: Request<hyper::body::Incoming>,
+) -> super::ServiceResult {
     if req.body().size_hint().upper().unwrap_or(u64::MAX) > cfg.max_req_size {
         todo!()
     }
-    let bytes = req.collect().await.unwrap().to_bytes().to_vec();
+
+    let bytes = req.collect().await?.to_bytes().to_vec();
     let prompt = str::from_utf8(&bytes)?;
     let resp = query_gpt(cfg, prompt).await;
     Ok(Response::builder()

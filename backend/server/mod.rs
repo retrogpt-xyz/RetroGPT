@@ -36,9 +36,12 @@ pub async fn run_server() {
 
 pub async fn handle_request(cfg: Arc<Cfg>, req: Request<hyper::body::Incoming>) -> ServiceResult {
     println!("{}", req.uri().path());
-    if req.uri().path() == "/api/gpt" {
-        return endpoint::gpt_req_inner(&cfg, req).await;
-    }
+
+    let req = match endpoint::prompt_gpt(&cfg, req).await {
+        Ok(req) => req,
+        Err(ser_res) => return ser_res,
+    };
+
     endpoint::static_dir(&cfg.static_dir, req).await
 }
 
