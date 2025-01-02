@@ -2,27 +2,31 @@ import { useState } from "react";
 import { ChatDisplay } from "./ChatDisplay";
 import { InputBox } from "./InputBox";
 
-const queryChat = (prompt: string): string => {
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api/gpt", false); // false makes it a blocking request
-  xhr.setRequestHeader("Content-Type", "text/plain");
+const promptBackend = async (prompt: string): Promise<string> => {
   try {
-    xhr.send(prompt);
-    if (xhr.status !== 200) {
-      throw new Error("Network response was not ok");
+    const response = await fetch("/api/prompt", {
+      method: "POST",
+      body: prompt,
+    });
+
+    if (!response.ok) {
+      return `Error: Server returned status ${response.status}`;
     }
-    return xhr.responseText;
+
+    return await response.text();
   } catch (error) {
-    console.error("Error querying GPT:", error);
-    throw error;
+    console.error("Error in promptBackend:", error);
+    return "Error: Failed to communicate with server";
   }
 };
 
 export const MainScreenInner = () => {
   const promptPrefix = "$ ";
   const [msgs, setMsgs] = useState<string[]>([]);
-  const handleSubmit = (txt: string) => {
-    setMsgs([...msgs, promptPrefix + txt, queryChat(txt)]);
+  const handleSubmit = async (txt: string) => {
+    setMsgs([...msgs, promptPrefix + txt]);
+    const response = await promptBackend(txt);
+    setMsgs((prev) => [...prev, response]);
   };
   return (
     <div
