@@ -44,7 +44,7 @@ export const InputBox = ({ onSubmit }: InputBoxProps) => {
           width: "100%",
           height: `${init_height}px`,
           maxHeight: "100%",
-          fontFamily: "JetBrains Mono, monospace",
+          fontFamily: "Static JetBrains Mono, monospace",
           fontSize: `${font_size}px`,
           resize: "none",
           backgroundColor: "black",

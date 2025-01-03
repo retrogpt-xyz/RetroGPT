@@ -21,7 +21,7 @@ export const Typewriter = ({ text, speed = 5 }: TypewriterProps) => {
   }, [text, speed]);
 
   return (
-    <span style={{ fontFamily: '"JetBrains Mono", monospace' }}>
+    <span style={{ fontFamily: '"Static JetBrains Mono", monospace' }}>
       {displayedText}
     </span>
   );
