@@ -3,7 +3,7 @@ use hyper::{body::Body, header::CONTENT_TYPE, Response, StatusCode};
 
 use crate::{
     cfg::Cfg,
-    gpt::query_gpt,
+    gpt::gpt_api,
     server::{
         error::{bad_request, internal_error},
         form_body, IncReqst, RGptResp,
@@ -26,7 +26,7 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<RGptResp, RGpt
         .to_bytes()
         .to_vec();
     let prompt = std::str::from_utf8(&bytes).map_err(|_| internal_error())?;
-    let resp = query_gpt(cfg, prompt).await.map_err(|_| internal_error())?;
+    let resp = gpt_api(cfg, prompt).await.map_err(|_| internal_error())?;
     let parsed = serde_json::from_str::<serde_json::Value>(&resp).map_err(|_| internal_error())?;
 
     let resp = match parsed
