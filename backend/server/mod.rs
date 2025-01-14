@@ -1,24 +1,52 @@
 pub mod endpoint;
+pub mod error;
+pub mod predicate;
 
 use crate::cfg::Cfg;
 
-use std::net::SocketAddr;
+use std::error::Error;
 use std::sync::Arc;
+use std::{convert::Infallible, net::SocketAddr};
 
 use http_body_util::Full;
 use hyper::{body::Bytes, server::conn::http1, service::service_fn, Request, Response};
 use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 
-pub async fn run_server() {
-    let global_cfg = Arc::new(Cfg::new());
+pub type IncReqst = Request<hyper::body::Incoming>;
+pub type RGptResp = Response<Full<Bytes>>;
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    let listener = TcpListener::bind(addr).await.unwrap();
+#[macro_export]
+macro_rules! handle_endpoint {
+    ($pred:expr, $handler:expr, $cfg:expr, $req:expr) => {
+        if $pred(&$cfg, &$req) {
+            return Ok($handler(&$cfg, $req).await);
+        }
+    };
+}
+
+pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<RGptResp, Infallible> {
+    println!("{}", req.uri().path());
+
+    handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
+    handle_endpoint!(predicate::serve_static, endpoint::serve_static, cfg, req);
+
+    Ok(error::bad_request("request did not match any endpoints"))
+}
+
+fn form_body<B: Into<Bytes>>(bytes: B) -> Full<Bytes> {
+    Full::new(bytes.into())
+}
+
+pub async fn run_server() -> Result<(), Box<dyn Error>> {
+    let global_cfg = Arc::new(Cfg::get()?);
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], global_cfg.port));
+    let listener = TcpListener::bind(addr).await?;
     println!("Listening on: {}", addr);
 
     loop {
-        let (stream, _addr) = listener.accept().await.unwrap();
+        let (stream, _addr) = listener.accept().await?;
         let io = TokioIo::new(stream);
 
         let local_cfg = Arc::clone(&global_cfg);
@@ -32,22 +60,4 @@ pub async fn run_server() {
                 .await
         });
     }
-}
-
-pub async fn handle_request(cfg: Arc<Cfg>, req: Request<hyper::body::Incoming>) -> ServiceResult {
-    println!("{}", req.uri().path());
-
-    let req = match endpoint::prompt_gpt(&cfg, req).await {
-        Ok(req) => req,
-        Err(ser_res) => return ser_res,
-    };
-
-    endpoint::static_dir(&cfg.static_dir, req).await
-}
-
-pub type ServiceResult =
-    Result<Response<Full<Bytes>>, Box<dyn std::error::Error + Sync + Send + 'static>>;
-
-fn form_body<B: Into<Bytes>>(bytes: B) -> Full<Bytes> {
-    Full::new(bytes.into())
 }
