@@ -26,8 +26,9 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<RGptResp, RGpt
         .to_bytes()
         .to_vec();
     let prompt = std::str::from_utf8(&bytes).map_err(|_| internal_error())?;
-    let resp = gpt_api(cfg, prompt).await.map_err(|_| internal_error())?;
-    let parsed = serde_json::from_str::<serde_json::Value>(&resp).map_err(|_| internal_error())?;
+
+    let recvd = gpt_api(cfg, prompt).await.map_err(|_| internal_error())?;
+    let parsed = serde_json::from_str::<serde_json::Value>(&recvd).map_err(|_| internal_error())?;
 
     let resp = match parsed
         .get("choices")
