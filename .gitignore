@@ -1,6 +1,10 @@
+# Secrets
+.env
+*.pem
+
+# Backend
 target/
 
+# Frontend
 node_modules/
 static/
-
-.env
