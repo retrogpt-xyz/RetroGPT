@@ -8,7 +8,7 @@ runs over https
 
 must have `./.env` file with `OPENAI_API_KEY` defined
 
-must have https certificates located in `certs/` dir: `./certs/cert.pem` and `./certs/key/pem`
+must have https certificates located in `certs/` dir: `./certs/cert.pem` and `./certs/key.pem`
 
 run `./docker_rebuild.sh` to (re)build the containers and restart the containers if necessary
 
