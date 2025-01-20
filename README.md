@@ -1,40 +1,29 @@
 # RetroGPT
 
+requires docker and docker compose
 
 ### prod build:
 
 runs over https
 
-requires docker and docker compose
-
 must have `./.env` file with `OPENAI_API_KEY` defined
 
-must have https certificates from letsencrypt/certbot
-
-run `./docker_rebuild.sh` to (re)build the containers and restart the containers if necessary
+must have https certificates from certbot/letsencrypt
 
 ```bash
-$ ./docker_rebuild.sh    # to run attached
-$ ./docker_rebuild.sh -d # to run detached
+$ docker compose --profile prod up --build    # to run attached
+                # or
+$ docker compose --profile prod up --build -d # to run detached
 ```
 
 ### dev build:
 
-runs on localhost port 3000
+runs over http
 
-requires node and cargo
-
-must have `OPENAI_API_KEY` defined either in environment vars or in `./.env` file
-
-build the frontend:
+must have `./.env` file with `OPENAI_API_KEY` defined
 
 ```bash
-$ npm install
-$ npm run build
-```
-
-run the backend
-
-```bash
-$ cargo run
+$ docker compose --profile dev up --build    # to run attached
+                # or
+$ docker compose --profile dev up --build -d # to run detached
 ```

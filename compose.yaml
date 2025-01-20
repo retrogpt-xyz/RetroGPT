@@ -1,5 +1,8 @@
 services:
   app:
+    profiles:
+    - dev
+    - prod
     container_name:
       app
     build:
@@ -8,16 +11,34 @@ services:
     env_file:
       - ./.env
 
-  nginx:
+  nginx-dev:
+    profiles:
+      - dev
     image:
       nginx:latest
     container_name:
-      nginx
+      nginx-dev
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
     depends_on:
       - app
+
+
+  nginx-prod:
+    profiles:
+      - prod
+    image:
+      nginx:latest
+    container_name:
+      nginx-prod
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - app
+
