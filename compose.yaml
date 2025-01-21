@@ -28,7 +28,7 @@ services:
     profiles:
       - dev
     image: nginx:latest
-    container_name: nginx
+    container_name: nginx-dev
     volumes:
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -42,7 +42,7 @@ services:
     profiles:
       - prod
     image: nginx:latest
-    container_name: nginx
+    container_name: nginx-prod
     volumes:
       - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
