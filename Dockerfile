@@ -32,6 +32,7 @@ WORKDIR /app
 
 COPY --from=backend-builder /app/target/release/retro_gpt_backend .
 COPY --from=frontend-builder /app/static/ static/
-COPY serverconf.toml .
+
+EXPOSE 3000
 
 CMD ["./retro_gpt_backend"]

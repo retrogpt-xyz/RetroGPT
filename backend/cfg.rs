@@ -1,7 +1,5 @@
 use std::{env, error::Error, path::PathBuf};
 
-use dotenv::dotenv;
-
 pub struct Cfg {
     pub static_dir: PathBuf,
     pub api_key: String,
@@ -15,7 +13,6 @@ pub struct Cfg {
 
 impl Cfg {
     pub fn get() -> Result<Self, Box<dyn Error>> {
-        dotenv().ok();
         let api_key = env::var("OPENAI_API_KEY")?;
         let static_dir = PathBuf::from("static/");
         let max_req_size = 1024 * 1024;
