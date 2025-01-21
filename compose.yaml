@@ -44,7 +44,7 @@ services:
     image: nginx:latest
     container_name: nginx-prod
     volumes:
-      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.prod.conf:/etc/nginx/nginx.template:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
       - 80:80
@@ -52,6 +52,9 @@ services:
     restart: always
     depends_on:
       - app
+    env_file:
+      - .env
+    command: /bin/bash -c "export DOLLAR="$" && envsubst < /etc/nginx/nginx.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
 
 volumes:
   postgres_data:
