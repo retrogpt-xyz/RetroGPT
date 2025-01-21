@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
+interface Message {
+  text: string;
+  sender: "user" | "ai";
+}
+
 function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [messages, setMessages] = useState<
-    { text: string; sender: "user" | "ai" }[]
-  >([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
 
   const handleMouseMove = (event: MouseEvent) => {
@@ -22,28 +25,28 @@ function App() {
     };
   }, []);
 
+  const fetchAIResponse = async (msgs: Message[]) => {
+    const response = await fetch("/api/prompt", {
+      method: "POST",
+      body: JSON.stringify(msgs),
+    });
+
+    const body = await response.text();
+
+    const aiResponse = body;
+
+    setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" }]);
+  };
+
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
-    const prev = messages;
+    setMessages((prev) => {
+      let msgs: Message[] = [...prev, { text: inputMessage, sender: "user" }];
+      fetchAIResponse(msgs);
+      return msgs;
+    });
 
-    setMessages([...prev, { text: inputMessage, sender: "user" }]);
-
-    // Placeholder for backend call
-    const fetchAIResponse = async () => {
-      const response = await fetch("/api/prompt", {
-        method: "POST",
-        body: JSON.stringify([...prev, { text: inputMessage, sender: "user" }]),
-      });
-
-      const body = await response.text();
-
-      const aiResponse = body;
-
-      setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" }]);
-    };
-
-    fetchAIResponse();
     setInputMessage("");
   };
 
