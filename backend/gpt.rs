@@ -5,10 +5,10 @@ use serde_json::{Map, Value};
 
 use crate::cfg::Cfg;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct DisplayMsg<'a> {
-    source: Cow<'a, str>,
-    msg: Cow<'a, str>,
+    sender: Cow<'a, str>,
+    text: Cow<'a, str>,
 }
 
 pub async fn gpt_api(cfg: &Cfg, chat_context: &str) -> Result<String, Box<dyn Error>> {
@@ -35,15 +35,14 @@ fn create_messages(cfg: &Cfg, chat_context: &str) -> Value {
 
     let mut msgs = vec![create_message("system", &cfg.system_message)];
 
-    msgs.extend(
-        msg_context
-            .into_iter()
-            .filter_map(|msg| match msg.source.as_ref() {
-                "USER" => Some(create_message("user", msg.msg)),
-                "RETROGPT" => Some(create_message("assistant", msg.msg)),
-                _ => None,
-            }),
-    );
+    msgs.extend(msg_context.into_iter().filter_map(|msg| {
+        println!("{msg:?}");
+        match msg.sender.as_ref() {
+            "user" => Some(create_message("user", msg.text)),
+            "ai" => Some(create_message("assistant", msg.sender)),
+            _ => None,
+        }
+    }));
 
     Value::Array(msgs)
 }
