@@ -4,7 +4,7 @@ body {
   background: url("https://external-preview.redd.it/e7L-hY0gBzi7A6HWknGZtXuOL29OzKDxZqWfiXHjh2o.png?auto=webp&s=fc2e705ccee6546a50ac2f06df3adb05248ff710") no-repeat center center fixed;
   background-size: cover;
   color: #000;
-  cursor: none; 
+  cursor: none;
 }
 
 .custom-cursor-layer {
