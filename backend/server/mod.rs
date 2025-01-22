@@ -39,7 +39,7 @@ fn form_body<B: Into<Bytes>>(bytes: B) -> Full<Bytes> {
 }
 
 pub async fn run_server() -> Result<(), Box<dyn Error>> {
-    let global_cfg = Arc::new(Cfg::get()?);
+    let global_cfg = Arc::new(Cfg::get().await?);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], global_cfg.port));
     let listener = TcpListener::bind(addr).await?;

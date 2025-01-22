@@ -9,9 +9,12 @@ services:
       target: app
     env_file:
       - .env
+    depends_on:
+     - db
 
   db:
     profiles:
+    - dev
     - prod
     container_name: db
     image: postgres:latest
@@ -21,7 +24,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - rgpt_postgres:/var/lib/postgresql/data
 
 
   nginx-dev:
@@ -33,7 +36,6 @@ services:
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     ports:
       - 80:80
-    restart: always
     depends_on:
       - app
 
@@ -57,4 +59,4 @@ services:
     command: /bin/bash -c "export DOLLAR="$" && envsubst < /etc/nginx/nginx.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
 
 volumes:
-  postgres_data:
+  rgpt_postgres:

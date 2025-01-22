@@ -12,6 +12,8 @@ name = "retro_gpt_backend"
 path = "backend/lib.rs"
 
 [dependencies]
+diesel = { version = "2.2.6", features = ["postgres"] }
+diesel-async = { version = "0.5.2", features = ["postgres"] }
 http-body-util = "0.1.2"
 hyper = { version = "1.5.2", features = ["full"] }
 hyper-util = { version = "0.1.10", features = ["full"] }

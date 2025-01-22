@@ -1,0 +1,5 @@
+CREATE TABLE tmsgs (
+    id SERIAL PRIMARY KEY,
+    body TEXT NOT NULL,
+    prnt_id INTEGER REFERENCES tmsgs(id) ON DELETE SET NULL
+);
