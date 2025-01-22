@@ -1,0 +1,150 @@
+body {
+  margin: 0;
+  font-family: "Courier New", Courier, monospace;
+  background: url("https://external-preview.redd.it/e7L-hY0gBzi7A6HWknGZtXuOL29OzKDxZqWfiXHjh2o.png?auto=webp&s=fc2e705ccee6546a50ac2f06df3adb05248ff710") no-repeat center center fixed;
+  background-size: cover;
+  color: #000;
+  cursor: none; 
+}
+
+.custom-cursor-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  cursor: none;
+  width: 20px;
+  height: 20px;
+  background: url("https://images.rawpixel.com/image_png_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA2L2pvYjk0Ny0xMDQtcC5wbmc.png");
+  background-size: cover;
+  pointer-events: none;
+  z-index: 1000;
+  transition: transform 0.1s ease-out;
+}
+
+.retro-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  height: 100vh;
+  gap: 20px;
+}
+
+.music-player {
+  background: #c0c0c0;
+  border: 3px solid #808080;
+  width: 200px;
+  height: 300px;
+  padding: 10px;
+  box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
+}
+
+.music-player h2 {
+  font-size: 18px;
+  text-align: center;
+}
+
+.music-player button {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background: #808080;
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.music-player button:hover {
+  background: #404040;
+}
+
+.main-window {
+  flex: 1;
+  background: #c0c0c0;
+  border: 3px solid #808080;
+  height: 400px;
+  box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
+}
+
+.header-bar {
+  color: #040404;
+  background: url("./assets/retrogptlogo.jpeg") no-repeat center center;
+  background-size: 15%;
+  height: 150px;
+}
+
+.content-area {
+  padding: 10px;
+}
+
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 2px inset #808080;
+}
+
+.chat-message {
+  margin-bottom: 10px;
+}
+
+.user-message {
+  color: blue;
+}
+
+.ai-message {
+  color: green;
+}
+
+.chat-input {
+  display: flex;
+  padding: 5px;
+  border: 2px inset #808080;
+  background-color: #dcdcdc;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 5px;
+  font-family: "Courier New", Courier, monospace;
+  border: 2px outset #c0c0c0;
+}
+
+.chat-input button {
+  margin-left: 5px;
+  padding: 5px 10px;
+  background: #808080;
+  border: 2px outset #c0c0c0;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.chat-input button:hover {
+  background: #404040;
+}
+
+.app-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-icon {
+  background: url("https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png");
+  background-size: cover;
+  border: 3px solid #808080;
+  width: 100px;
+  height: 100px;
+  box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
+  display: flex;
+  align-items: center;
+}

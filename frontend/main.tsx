@@ -1,10 +1,11 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import MainScreen from "./App.tsx";
-import "./main.css";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './App.css'; // Import CSS
+import App from './App'; // Import the App component
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <MainScreen />
-  </StrictMode>,
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
