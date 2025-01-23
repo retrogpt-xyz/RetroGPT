@@ -3,13 +3,19 @@ use std::{borrow::Cow, error::Error};
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
-use crate::cfg::Cfg;
+use crate::{
+    cfg::Cfg,
+    db::{
+        chats::{add_to_chat, create_chat, get_chat_by_id},
+        msgs::create_msg,
+    },
+};
 
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug)]
 struct BackendQueryMsg<'a> {
     text: Cow<'a, str>,
-    headId: Option<i32>,
+    chatId: Option<i32>,
 }
 
 pub async fn gpt_api(cfg: &Cfg, be_query_msg: &str) -> Result<(String, i32), Box<dyn Error>> {
@@ -37,16 +43,35 @@ async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32) {
 
     let mut conn = cfg.db_conn.lock().await;
     let def_user = crate::db::users::get_default_user(&mut conn).await;
-    let msg = crate::db::msgs::create_msg(
-        &mut conn,
-        backend_query_msg.text.as_ref(),
-        "user",
-        def_user.user_id,
-        backend_query_msg.headId,
-    )
-    .await;
+    let (chat, msg) = match backend_query_msg.chatId {
+        Some(id) => {
+            let chat = get_chat_by_id(&mut conn, id).await;
+            let msg = create_msg(
+                &mut conn,
+                &backend_query_msg.text,
+                "user",
+                def_user.user_id,
+                Some(chat.head_msg),
+            )
+            .await;
+            let chat = add_to_chat(&mut conn, &chat, &msg).await;
+            (chat, msg)
+        }
+        None => {
+            let msg = create_msg(
+                &mut conn,
+                &backend_query_msg.text,
+                "user",
+                def_user.user_id,
+                None,
+            )
+            .await;
+            let chat = create_chat(&mut conn, &msg).await;
+            (chat, msg)
+        }
+    };
 
-    let new_head_id = msg.id;
+    let new_head_id = chat.head_msg;
 
     let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
 

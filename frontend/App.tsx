@@ -8,14 +8,14 @@ interface DisplayMessage {
 
 interface BackendQueryMessage {
   text: string;
-  headId: number | null;
+  chatId: number | null;
 }
 
 function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [chatHead, setChatHead] = useState<number | null>(null);
+  const [chatId, setChatId] = useState<number | null>(null);
 
   // TODO: Implement session token (stok) validation
   const [_stok, setStok] = useState("");
@@ -56,7 +56,7 @@ function App() {
     const aiResponse = parsed.text;
 
     setDisplayMessages((prev) => [...prev, { text: aiResponse, sender: "ai" }]);
-    setChatHead(parsed.headId);
+    setChatId(parsed.chatId);
   };
 
   const handleSendMessage = () => {
@@ -69,7 +69,7 @@ function App() {
 
     const be_query_msg: BackendQueryMessage = {
       text: inputMessage,
-      headId: chatHead,
+      chatId: chatId,
     };
 
     fetchAIResponse(be_query_msg);

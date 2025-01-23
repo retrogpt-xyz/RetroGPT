@@ -53,7 +53,7 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<RGptResp, RGpt
 
     let be_req_msg = json!({
         "text": resp,
-        "headId": msg.id,
+        "chatId": msg.id,
     });
 
     Response::builder()
