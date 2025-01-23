@@ -44,15 +44,6 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<RGptResp, RGpt
         _ => Err(internal_error())?,
     };
 
-    {
-        let mut conn = cfg.db_conn.lock().await;
-        let wrote = crate::db::write_msg(&mut conn, &resp, None).await;
-        println!(
-            "wrote message \"{}\" to DB with ID {}",
-            wrote.body, wrote.id
-        );
-    }
-
     Response::builder()
         .status(StatusCode::OK)
         .header(CONTENT_TYPE, "text/plain")
