@@ -1,7 +1,7 @@
 CREATE TABLE msgs(
     id SERIAL PRIMARY KEY,
     body TEXT NOT NULL,
-    type VARCHAR NOT NULL,
+    sender VARCHAR NOT NULL,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     parent_message_id INT REFERENCES msgs(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

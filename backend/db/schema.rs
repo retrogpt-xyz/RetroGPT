@@ -14,8 +14,7 @@ diesel::table! {
     msgs (id) {
         id -> Int4,
         body -> Text,
-        #[sql_name = "type"]
-        type_ -> Varchar,
+        sender -> Varchar,
         user_id -> Int4,
         parent_message_id -> Nullable<Int4>,
         created_at -> Timestamp,

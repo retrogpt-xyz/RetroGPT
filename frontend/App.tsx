@@ -1,15 +1,34 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-interface Message {
+interface DisplayMessage {
   text: string;
   sender: "user" | "ai";
 }
 
+interface BackendQueryMessage {
+  text: string;
+  headId: number | null;
+}
+
 function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
+  const [chatHead, setChatHead] = useState<number | null>(null);
+
+  // TODO: Implement session token (stok) validation
+  const [_stok, setStok] = useState("");
+
+  const get_def_sess = async () => {
+    const resp = await fetch("/api/get_def_sess", { method: "GET" });
+    let body = await resp.text();
+    setStok(body);
+  };
+
+  useEffect(() => {
+    get_def_sess();
+  }, []);
 
   const handleMouseMove = (event: MouseEvent) => {
     setMousePosition({
@@ -25,27 +44,35 @@ function App() {
     };
   }, []);
 
-  const fetchAIResponse = async (msgs: Message[]) => {
+  const fetchAIResponse = async (msg: BackendQueryMessage) => {
     const response = await fetch("/api/prompt", {
       method: "POST",
-      body: JSON.stringify(msgs),
+      body: JSON.stringify(msg),
     });
 
     const body = await response.text();
+    let parsed: BackendQueryMessage = JSON.parse(body);
 
-    const aiResponse = body;
+    const aiResponse = parsed.text;
 
-    setMessages((prev) => [...prev, { text: aiResponse, sender: "ai" }]);
+    setDisplayMessages((prev) => [...prev, { text: aiResponse, sender: "ai" }]);
+    setChatHead(parsed.headId);
   };
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
-    setMessages((prev) => {
-      let msgs: Message[] = [...prev, { text: inputMessage, sender: "user" }];
-      fetchAIResponse(msgs);
-      return msgs;
-    });
+    setDisplayMessages((prev) => [
+      ...prev,
+      { text: inputMessage, sender: "user" },
+    ]);
+
+    const be_query_msg: BackendQueryMessage = {
+      text: inputMessage,
+      headId: chatHead,
+    };
+
+    fetchAIResponse(be_query_msg);
 
     setInputMessage("");
   };
@@ -73,7 +100,7 @@ function App() {
         <div className="content-area">
           <div className="chat-window">
             <div className="chat-messages">
-              {messages.map((message, index) => (
+              {displayMessages.map((message, index) => (
                 <div
                   key={index}
                   className={`chat-message ${
