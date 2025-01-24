@@ -15,7 +15,7 @@ body {
   width: 20px;
   height: 20px;
   background: url("https://images.rawpixel.com/image_png_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA2L2pvYjk0Ny0xMDQtcC5wbmc.png");
-  background-size:cover;
+  background-size: cover;
   pointer-events: none;
   z-index: 1000;
   transition: transform 0.1s ease-out;
@@ -176,7 +176,7 @@ button:hover {
 }
 
 .app-icon {
-  background: url("https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png");
+  background: url("./assets/side-icon.png");
   background-size: cover;
   border: 3px solid #808080;
   width: 100px;
