@@ -18,8 +18,8 @@ struct BackendQueryMsg<'a> {
     chatId: Option<i32>,
 }
 
-pub async fn gpt_api(cfg: &Cfg, be_query_msg: &str) -> Result<(String, i32), Box<dyn Error>> {
-    let (api_fmted_msgs, new_head_id) = create_messages(cfg, be_query_msg).await;
+pub async fn gpt_api(cfg: &Cfg, be_query_msg: &str) -> Result<(String, i32, i32), Box<dyn Error>> {
+    let (api_fmted_msgs, new_head_id, chat_id) = create_messages(cfg, be_query_msg).await;
     let body = serde_json::json!({
         "model": cfg.model_name,
         "messages": api_fmted_msgs,
@@ -35,16 +35,17 @@ pub async fn gpt_api(cfg: &Cfg, be_query_msg: &str) -> Result<(String, i32), Box
         .send()
         .await?;
 
-    Ok((resp.text().await?, new_head_id))
+    Ok((resp.text().await?, new_head_id, chat_id))
 }
 
-async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32) {
+async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32, i32) {
     let backend_query_msg: BackendQueryMsg<'_> = serde_json::from_str(backend_query_msg).unwrap();
 
     let mut conn = cfg.db_conn.lock().await;
     let def_user = crate::db::users::get_default_user(&mut conn).await;
     let (chat, msg) = match backend_query_msg.chatId {
         Some(id) => {
+            println!("I received a chat id reference of {}", id);
             let chat = get_chat_by_id(&mut conn, id).await;
             let msg = create_msg(
                 &mut conn,
@@ -67,11 +68,15 @@ async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32) {
             )
             .await;
             let chat = create_chat(&mut conn, &msg).await;
+            println!("Created new DB chat instance with id {}", chat.id);
             (chat, msg)
         }
     };
 
     let new_head_id = chat.head_msg;
+
+    println!("new head id is {}", new_head_id);
+    println!("created measage id is {}", msg.id);
 
     let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
 
@@ -88,7 +93,7 @@ async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32) {
     );
 
     println!("{}", Value::Array(api_fmted_msgs.clone()));
-    (Value::Array(api_fmted_msgs), new_head_id)
+    (Value::Array(api_fmted_msgs), new_head_id, chat.id)
 }
 
 fn create_message(from: impl Into<String>, msg: impl Into<String>) -> Value {

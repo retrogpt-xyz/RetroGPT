@@ -18,12 +18,12 @@ function App() {
   const [chatId, setChatId] = useState<number | null>(null);
 
   // TODO: Implement session token (stok) validation
-  const [_stok, setStok] = useState("");
+  const [_sessToken, setSessToken] = useState("");
 
   const get_def_sess = async () => {
     const resp = await fetch("/api/get_def_sess", { method: "GET" });
     let body = await resp.text();
-    setStok(body);
+    setSessToken(body);
   };
 
   useEffect(() => {
