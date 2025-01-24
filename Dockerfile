@@ -35,11 +35,15 @@ RUN apt-get update && apt-get install -y \
 
 RUN cargo install diesel_cli --no-default-features --features postgres
 
-FROM archlinux@sha256:58fd363480dc61d0c657768605bca3c87d5b697cb8c2fe0217aad941c6a8a508 AS app
+FROM debian:bookworm-slim as app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libpq5 \
+    dumb-init && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-RUN  pacman -Sy --noconfirm postgresql
 
 COPY --from=backend-builder /app/target/release/retro_gpt_backend .
 COPY --from=frontend-builder /app/static/ static/
@@ -48,5 +52,7 @@ COPY migrations/ migrations/
 COPY diesel.toml .
 
 EXPOSE 3000
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 CMD ["./retro_gpt_backend"]
