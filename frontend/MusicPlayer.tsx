@@ -1,4 +1,3 @@
-import React from "react";
 import "./MusicPlayer.css";
 
 const SoundCloudPlayer = () => {
@@ -10,8 +9,6 @@ const SoundCloudPlayer = () => {
         title="SoundCloud Player"
         width="100%"
         height="300"
-        scrolling="no"
-        frameBorder="no"
         allow="autoplay"
         src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/68014678&color=%23666e7c&auto_play=true&hide_related=false&hide_comments=false&hide_user=false&hide_reposts=false&hide_teaser=false&visual=false"
       ></iframe>
@@ -24,8 +21,7 @@ const SoundCloudPlayer = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="soundcloud-link"
-        >
-        </a>{" "}
+        ></a>{" "}
         ·{" "}
         <a
           //href="https://soundcloud.com/windows-98-1/sets/our27bsakoe2"
@@ -33,8 +29,7 @@ const SoundCloudPlayer = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="soundcloud-link"
-        >
-        </a>
+        ></a>
       </div>
     </div>
   );
