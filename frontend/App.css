@@ -1,10 +1,10 @@
 body {
   margin: 0;
   font-family: "Courier New", Courier, monospace;
-  background: url("https://external-preview.redd.it/e7L-hY0gBzi7A6HWknGZtXuOL29OzKDxZqWfiXHjh2o.png?auto=webp&s=fc2e705ccee6546a50ac2f06df3adb05248ff710") no-repeat center center fixed;
+  background: #008080;
   background-size: cover;
   color: #000;
-  cursor: none;
+  cursor: none; 
 }
 
 .custom-cursor-layer {
@@ -15,7 +15,7 @@ body {
   width: 20px;
   height: 20px;
   background: url("https://images.rawpixel.com/image_png_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA2L2pvYjk0Ny0xMDQtcC5wbmc.png");
-  background-size: cover;
+  background-size:cover;
   pointer-events: none;
   z-index: 1000;
   transition: transform 0.1s ease-out;
@@ -33,30 +33,67 @@ body {
 .music-player {
   background: #c0c0c0;
   border: 3px solid #808080;
-  width: 200px;
-  height: 300px;
   padding: 10px;
+  width: 300px;
   box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
 }
 
-.music-player h2 {
-  font-size: 18px;
-  text-align: center;
+.controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 
-.music-player button {
+.controls button {
+  background: #808080;
+  border: none;
+  color: #fff;
+  padding: 10px;
+  font-family: "Courier New", Courier, monospace;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background: #404040;
+}
+
+.track-input {
+  width: calc(100% - 20px);
+  padding: 5px;
+  margin-bottom: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  border: 1px solid #808080;
+  box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #404040;
+  outline: none;
+}
+
+.track-input:focus {
+  border: 1px solid #404040;
+}
+
+button {
   display: block;
-  margin: 20px auto;
-  padding: 10px 20px;
+  width: 20%;
+  padding: 5px;
   background: #808080;
   border: none;
   color: #fff;
   font-family: inherit;
+  font-size: 14px;
   cursor: pointer;
+  box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #404040;
 }
 
-.music-player button:hover {
+button:hover {
   background: #404040;
+}
+
+.error-text {
+  color: red;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 5px;
 }
 
 .main-window {
@@ -69,7 +106,7 @@ body {
 
 .header-bar {
   color: #040404;
-  background: url("./assets/retrogptlogo.jpeg") no-repeat center center;
+  background: url("/Users/bennett_teitle/Downloads/retrogptlogo copy Background Removed.png") no-repeat center center;
   background-size: 15%;
   height: 150px;
 }
