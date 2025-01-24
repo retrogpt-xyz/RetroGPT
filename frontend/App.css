@@ -106,7 +106,7 @@ button:hover {
 
 .header-bar {
   color: #040404;
-  background: url("/Users/bennett_teitle/Downloads/retrogptlogo copy Background Removed.png") no-repeat center center;
+  background: url("./assets/retrogptlogo.jpeg") no-repeat center center;
   background-size: 15%;
   height: 150px;
 }
