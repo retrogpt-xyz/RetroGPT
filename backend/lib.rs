@@ -1,12 +1,13 @@
 pub mod cfg;
-pub mod server;
+pub mod db;
 pub mod gpt;
-
-use server::run_server;
+pub mod server;
+pub mod startup;
 
 pub fn run_app() -> Result<(), Box<dyn std::error::Error>> {
-    let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(run_server())?;
+    startup::startup();
 
-    Ok(())
+    let rt = tokio::runtime::Runtime::new()?;
+
+    rt.block_on(async { server::run_server().await })
 }

@@ -26,14 +26,13 @@ must have https certificates from certbot/letsencrypt
 
 ### `.env` file:
 
-must have the following values defined:
+must have the following env vars defined:
 
 - `OPENAI_API_KEY`
-
-prod build only:
-
-- `HOSTNAME`
+- `POSTGRES_DB`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-- `DATABSE_URL`
+
+additionally for prod build only:
+
+- `HOSTNAME` 

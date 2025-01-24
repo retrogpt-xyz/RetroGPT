@@ -1,0 +1,45 @@
+/* Main container for the SoundCloud player */
+.soundcloud-container {
+    font-family: "Interstate", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Garuda, Verdana, Tahoma, sans-serif;
+    font-weight: 100;
+    color: #3b1eba98;
+    max-width: 100%;
+    text-align: center;
+  }
+  
+  /* Styling the iframe player */
+  .soundcloud-player {
+    border: none;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Description and links below the player */
+  .soundcloud-info {
+    font-size: 10px;
+    margin-top: 5px;
+    line-break: anywhere;
+    word-break: normal;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  
+  /* Links styling */
+  .soundcloud-link {
+    color: #3b1eba98;
+    text-decoration: none;
+  }
+  
+  .soundcloud-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+  }
+/*
+  .soundcloud-container {
+    position: absolute;
+    left: -9999px;
+    top: 0; 
+  }
+  */
