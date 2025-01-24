@@ -35,13 +35,13 @@ RUN apt-get update && apt-get install -y \
 
 RUN cargo install diesel_cli --no-default-features --features postgres
 
-FROM debian:bookworm-slim as app
+FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab as app
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libpq5 \
-    dumb-init && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends \
+  libpq5 \
+  dumb-init && \
+  rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
