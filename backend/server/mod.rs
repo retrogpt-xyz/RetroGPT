@@ -10,15 +10,13 @@ use std::sync::Arc;
 use std::{convert::Infallible, net::SocketAddr};
 
 use futures::Stream;
-use http_body_util::{Full, StreamBody};
+use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper::{body::Bytes, server::conn::http1, service::service_fn, Request, Response};
 use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 
 pub type IncReqst = Request<hyper::body::Incoming>;
-#[deprecated]
-pub type RGptResp = Response<Full<Bytes>>;
 pub type OutResp = Response<
     StreamBody<
         Box<dyn Unpin + Send + futures::Stream<Item = Result<Frame<Bytes>, std::io::Error>>>,
