@@ -4,10 +4,10 @@ use diesel_async::{AsyncConnection, AsyncPgConnection};
 
 pub mod schema;
 
-pub mod users;
-pub mod sessions;
-pub mod msgs;
 pub mod chats;
+pub mod msgs;
+pub mod sessions;
+pub mod users;
 
 pub fn ensure_migrations() {
     let container_db_url = env::var("CONTAINER_DATABASE_URL").unwrap();
