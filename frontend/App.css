@@ -33,7 +33,21 @@ body {
 .music-player {
   background: #c0c0c0;
   border: 3px solid #808080;
+  width: 200px;
+  height: 300px;
   padding: 10px;
+  box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
+}
+
+.music-player h2 {
+  font-size: 18px;
+  text-align: center;
+}
+
+.music-player button {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
   width: 300px;
   box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
 }
@@ -76,10 +90,13 @@ button {
   display: block;
   width: 20%;
   padding: 5px;
-  background: #808080;
-  border: none;
-  color: #fff;
-  font-family: inherit;
+  cursor: pointer;
+}
+
+.music-player button:hover {
+  background: #404040;
+/* } */
+
   font-size: 14px;
   cursor: pointer;
   box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #404040;
@@ -176,7 +193,7 @@ button:hover {
 }
 
 .app-icon {
-  background: url("./assets/side-icon.png");
+  background: url("https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png");
   background-size: cover;
   border: 3px solid #808080;
   width: 100px;

@@ -11,6 +11,7 @@ use crate::{
     },
 };
 
+
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug)]
 struct BackendQueryMsg<'a> {
@@ -72,6 +73,7 @@ async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32, i32
             (chat, msg)
         }
     };
+
 
     let new_head_id = chat.head_msg;
 
