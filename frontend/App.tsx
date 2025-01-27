@@ -52,7 +52,14 @@ function App() {
     });
 
     const body = await response.text();
-    let parsed: BackendQueryMessage = JSON.parse(body);
+
+    let parsed: BackendQueryMessage;
+    try {
+      parsed = JSON.parse(body);
+    } catch (error) {
+      console.error("Failed to parse JSON:", error);
+      parsed = { text: body, chatId: null };
+    }
 
     const aiResponse = parsed.text;
 

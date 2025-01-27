@@ -14,10 +14,6 @@ use crate::{
     server::{error::error_500, IncReqst, OutResp},
 };
 
-// pub async fn serve_static(cfg: &Cfg, req: IncReqst) -> RGptResp {
-// serve_static_inner(cfg, req).await.unwrap_or_else(|x| x)
-// }
-
 pub async fn serve_static(cfg: &Cfg, req: IncReqst) -> OutResp {
     serve_static_inner(cfg, req).await.unwrap_or_else(identity)
 }

@@ -12,6 +12,7 @@ name = "retro_gpt_backend"
 path = "backend/lib.rs"
 
 [dependencies]
+async-openai = "0.27.2"
 chrono = "0.4.39"
 diesel = { version = "2.2.6", features = ["chrono", "postgres"] }
 diesel-async = { version = "0.5.2", features = ["postgres"] }

@@ -35,6 +35,9 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         .to_vec();
     let prompt = std::str::from_utf8(&bytes).map_err(|_| error_500())?;
 
+    // let ocfg = async_openai::config::OpenAIConfig::new().with_api_key(&cfg.api_key);
+    // let client = async_openai::Client::with_config(ocfg);
+
     let (recvd, new_head_id, chat_id) = gpt_api(cfg, prompt).await.map_err(|_| error_500())?;
     let parsed = serde_json::from_str::<serde_json::Value>(&recvd).map_err(|_| error_500())?;
 
