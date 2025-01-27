@@ -3,23 +3,17 @@ use std::{borrow::Cow, error::Error};
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
-use crate::{
-    cfg::Cfg,
-    db::{
-        chats::{add_to_chat, create_chat, get_chat_by_id},
-        msgs::create_msg,
-    },
-};
+use crate::{cfg::Cfg, db::msgs::Msg};
 
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug)]
-struct BackendQueryMsg<'a> {
-    text: Cow<'a, str>,
-    chatId: Option<i32>,
+pub struct BackendQueryMsg<'a> {
+    pub text: Cow<'a, str>,
+    pub chatId: Option<i32>,
 }
 
-pub async fn gpt_api(cfg: &Cfg, be_query_msg: &str) -> Result<(String, i32, i32), Box<dyn Error>> {
-    let (api_fmted_msgs, new_head_id, chat_id) = create_messages(cfg, be_query_msg).await;
+pub async fn gpt_api(cfg: &Cfg, msg_chain: Vec<Msg>) -> Result<String, Box<dyn Error>> {
+    let api_fmted_msgs = create_messages(cfg, msg_chain).await;
     let body = serde_json::json!({
         "model": cfg.model_name,
         "messages": api_fmted_msgs,
@@ -35,51 +29,10 @@ pub async fn gpt_api(cfg: &Cfg, be_query_msg: &str) -> Result<(String, i32, i32)
         .send()
         .await?;
 
-    Ok((resp.text().await?, new_head_id, chat_id))
+    Ok(resp.text().await?)
 }
 
-async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32, i32) {
-    let backend_query_msg: BackendQueryMsg<'_> = serde_json::from_str(backend_query_msg).unwrap();
-
-    let mut conn = cfg.db_conn.lock().await;
-    let def_user = crate::db::users::get_default_user(&mut conn).await;
-    let (chat, msg) = match backend_query_msg.chatId {
-        Some(id) => {
-            println!("I received a chat id reference of {}", id);
-            let chat = get_chat_by_id(&mut conn, id).await;
-            let msg = create_msg(
-                &mut conn,
-                &backend_query_msg.text,
-                "user",
-                def_user.user_id,
-                Some(chat.head_msg),
-            )
-            .await;
-            let chat = add_to_chat(&mut conn, &chat, &msg).await;
-            (chat, msg)
-        }
-        None => {
-            let msg = create_msg(
-                &mut conn,
-                &backend_query_msg.text,
-                "user",
-                def_user.user_id,
-                None,
-            )
-            .await;
-            let chat = create_chat(&mut conn, &msg).await;
-            println!("Created new DB chat instance with id {}", chat.id);
-            (chat, msg)
-        }
-    };
-
-    let new_head_id = chat.head_msg;
-
-    println!("new head id is {}", new_head_id);
-    println!("created measage id is {}", msg.id);
-
-    let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
-
+async fn create_messages(cfg: &Cfg, msg_chain: Vec<Msg>) -> Value {
     let mut api_fmted_msgs = vec![create_message("system", &cfg.system_message)];
 
     api_fmted_msgs.extend(
@@ -93,7 +46,7 @@ async fn create_messages(cfg: &Cfg, backend_query_msg: &str) -> (Value, i32, i32
     );
 
     println!("{}", Value::Array(api_fmted_msgs.clone()));
-    (Value::Array(api_fmted_msgs), new_head_id, chat.id)
+    Value::Array(api_fmted_msgs)
 }
 
 fn create_message(from: impl Into<String>, msg: impl Into<String>) -> Value {
