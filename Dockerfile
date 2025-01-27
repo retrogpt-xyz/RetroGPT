@@ -26,12 +26,37 @@ COPY frontend/ frontend/
 COPY vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json index.html ./
 RUN npm run build
 
-FROM archlinux@sha256:58fd363480dc61d0c657768605bca3c87d5b697cb8c2fe0217aad941c6a8a508 AS app
+FROM rust@sha256:a45bf1f5d9af0a23b26703b3500d70af1abff7f984a7abef5a104b42c02a292b AS diesel-builder
+
+RUN apt-get update && apt-get install -y \
+  libssl-dev \
+  libpq-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN cargo install diesel_cli --no-default-features --features postgres
+
+FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab AS app
+
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+  ca-certificates \
+  libpq5 \
+  pkg-config \
+  libssl-dev \
+  dumb-init \
+  curl \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY --from=backend-builder /app/target/release/retro_gpt_backend .
 COPY --from=frontend-builder /app/static/ static/
-COPY serverconf.toml .
+COPY --from=diesel-builder /usr/local/cargo/bin/diesel .
+COPY migrations/ migrations/
+COPY diesel.toml .
+
+EXPOSE 3000
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 CMD ["./retro_gpt_backend"]

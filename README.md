@@ -1,29 +1,38 @@
 # RetroGPT
 
-requires docker and docker compose
+builds with docker compose
 
-### prod build:
-
-runs over https
-
-must have `./.env` file with `OPENAI_API_KEY` defined
-
-must have https certificates from certbot/letsencrypt
+to build:
 
 ```bash
-$ docker compose --profile prod up --build    # to run attached
-                # or
-$ docker compose --profile prod up --build -d # to run detached
+$ ./build.sh
 ```
+
+the default profile is dev if none is provided
 
 ### dev build:
 
 runs over http
 
-must have `./.env` file with `OPENAI_API_KEY` defined
+must have `.env` file with relevant keys defined
 
-```bash
-$ docker compose --profile dev up --build    # to run attached
-                # or
-$ docker compose --profile dev up --build -d # to run detached
-```
+### prod build:
+
+runs over https
+
+must have `.env` file with relevant keys defined
+
+must have https certificates from certbot/letsencrypt
+
+### `.env` file:
+
+must have the following env vars defined:
+
+- `OPENAI_API_KEY`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+
+additionally for prod build only:
+
+- `HOSTNAME` 

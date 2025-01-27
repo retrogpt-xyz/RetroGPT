@@ -5,6 +5,10 @@ pub fn api_prompt(_cfg: &Cfg, req: &IncReqst) -> bool {
     req.uri().path().starts_with("/api/prompt")
 }
 
+pub fn api_def_sess(_cfg: &Cfg, req: &IncReqst) -> bool {
+    req.uri().path().starts_with("/api/get_def_sess")
+}
+
 pub fn serve_static(cfg: &Cfg, req: &IncReqst) -> bool {
     let mut path = cfg.static_dir.join(&req.uri().path()[1..]);
     if path.is_dir() {

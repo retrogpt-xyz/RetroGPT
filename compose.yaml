@@ -1,23 +1,38 @@
 services:
   app:
     profiles:
-    - dev
-    - prod
-    container_name:
-      app
+      - dev
+      - prod
+    container_name: app
     build:
       context: .
       target: app
     env_file:
-      - ./.env
+      - .env
+      - .pub.env
+    depends_on:
+      - db
+
+  db:
+    profiles:
+      - dev
+      - prod
+    container_name: db
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env
+      - .pub.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - rgpt_postgres:/var/lib/postgresql/data
 
   nginx-dev:
     profiles:
       - dev
-    image:
-      nginx:latest
-    container_name:
-      nginx-dev
+    image: nginx:alpine
+    container_name: nginx-dev
     volumes:
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -25,20 +40,24 @@ services:
     depends_on:
       - app
 
-
   nginx-prod:
     profiles:
       - prod
-    image:
-      nginx:latest
-    container_name:
-      nginx-prod
+    image: nginx:latest
+    container_name: nginx-prod
     volumes:
-      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.prod.conf:/etc/nginx/nginx.template:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
       - 80:80
       - 443:443
+    restart: always
     depends_on:
       - app
+    env_file:
+      - .env
+      - .pub.env
+    command: /bin/bash -c "export DOLLAR="$" && envsubst < /etc/nginx/nginx.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
 
+volumes:
+  rgpt_postgres:
