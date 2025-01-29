@@ -2,6 +2,7 @@ use diesel::{
     prelude::Insertable, ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper,
 };
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
+use tokio::sync::oneshot;
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = super::schema::msgs)]
@@ -69,4 +70,34 @@ pub async fn create_msg(
         .get_result(conn)
         .await
         .unwrap()
+}
+
+pub async fn create_placeholder_msg(
+    conn: &mut AsyncPgConnection,
+    msg_sender: &str,
+    uid: i32,
+    prnt_id: Option<i32>,
+) -> (oneshot::Sender<String>, Msg) {
+    // Create a placeholder message
+    let placeholder_msg = create_msg(conn, "Placeholder message", msg_sender, uid, prnt_id).await;
+
+    // Create a oneshot channel
+    let (tx, rx) = oneshot::channel();
+
+    // Spawn a future to wait on the receiver and update the message
+    tokio::spawn(async move {
+        // Establish a new connection here
+        let mut new_conn = super::make_conn().await; // Replace with your connection setup logic
+
+        if let Ok(new_body) = rx.await {
+            // Update the message with the new body
+            diesel::update(super::schema::msgs::dsl::msgs.find(placeholder_msg.id))
+                .set(super::schema::msgs::dsl::body.eq(new_body))
+                .execute(&mut new_conn) // Use the new connection
+                .await
+                .unwrap();
+        }
+    });
+
+    (tx, placeholder_msg)
 }
