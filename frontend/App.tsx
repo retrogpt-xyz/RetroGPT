@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
+
 import MusicPlayer from "./MusicPlayer";
 
 interface DisplayMessage {
@@ -14,6 +15,7 @@ interface BackendQueryMessage {
 
 function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
@@ -118,6 +120,7 @@ function App() {
       ></div>
 
       {/* Leftside music player */}
+
       <div>
         <MusicPlayer />
       </div>
@@ -128,6 +131,7 @@ function App() {
         <div className="content-area">
           <div className="chat-window">
             <div className="chat-messages">
+
               {displayMessages.map((message, index) => (
                 <div
                   key={index}
@@ -154,6 +158,7 @@ function App() {
 
       {/* Right column with app icons */}
       <div className="app-column">
+
         {[
           "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
           "https://64.media.tumblr.com/0d181187c50fedc1c60d1a6c3dd2165d/ec299322d93fd773-53/s540x810/afd900c44adfac375f08a490df747be6384c17d6.png",
