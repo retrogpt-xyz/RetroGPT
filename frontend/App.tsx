@@ -20,7 +20,7 @@ function App() {
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
 
-  // TODO: Implement session token (stok) validation
+  // TODO: Implement session token validation
   const [_sessToken, setSessToken] = useState("");
 
   const get_def_sess = async () => {
@@ -53,13 +53,42 @@ function App() {
       body: JSON.stringify(msg),
     });
 
-    const body = await response.text();
-    let parsed: BackendQueryMessage = JSON.parse(body);
+    const chatIdHeader = response.headers.get("X-Chat-ID");
+    if (chatIdHeader) {
+      setChatId(parseInt(chatIdHeader, 10));
+    }
 
-    const aiResponse = parsed.text;
+    const reader = response.body?.getReader();
+    if (!reader) {
+      console.error("Failed to get reader from response body.");
+      return;
+    }
+    const decoder = new TextDecoder("utf-8");
+    let aiResponse = "";
 
-    setDisplayMessages((prev) => [...prev, { text: aiResponse, sender: "ai" }]);
-    setChatId(parsed.chatId);
+    // Append a new message for streaming
+    setDisplayMessages((prev) => [
+      ...prev,
+      { text: "...", sender: "ai" as "ai" },
+    ]);
+
+    const messageIndex = displayMessages.length + 1;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      aiResponse += decoder.decode(value, { stream: true });
+
+      // Update the last message with the new data
+      setDisplayMessages((prev) => {
+        const updatedMessages = [...prev];
+        updatedMessages[messageIndex] = {
+          text: aiResponse,
+          sender: "ai" as "ai",
+        };
+        return updatedMessages;
+      });
+    }
   };
 
   const handleSendMessage = () => {
