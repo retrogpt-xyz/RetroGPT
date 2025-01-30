@@ -15,6 +15,7 @@ use hyper::{
 use crate::{
     cfg::Cfg,
     db::{
+        self,
         chats::{add_to_chat, create_chat, get_chat_by_id},
         msgs::{create_msg, Msg},
     },
@@ -31,6 +32,16 @@ pub async fn api_prompt(cfg: &Cfg, req: IncReqst) -> OutResp {
 pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
     if req.body().size_hint().upper().unwrap_or(u64::MAX) > cfg.max_req_size {
         return Err(error_400("request body is too large"));
+    }
+
+    let session_token = match req.headers().get("X-Session-Token") {
+        Some(s) => s.to_str().map_err(|_| error_500())?,
+        None => return Err(error_400("no session token provided")),
+    };
+
+    let mut conn = db::make_conn().await;
+    if !db::sessions::session_token_is_valid(&mut conn, session_token).await {
+        return Err(error_400("invalid session token"));
     }
 
     let bytes = req
@@ -92,7 +103,6 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     let (stream_tx, mut rx) = futures::channel::mpsc::unbounded::<String>();
 
-    let mut conn = cfg.db_conn.lock().await;
     let def_user = crate::db::users::get_default_user(&mut conn).await;
     let (body_tx, msg) = crate::db::msgs::create_placeholder_msg(
         &mut conn,

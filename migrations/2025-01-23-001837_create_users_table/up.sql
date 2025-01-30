@@ -5,8 +5,8 @@ CREATE TABLE users (
     name VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP NOT NULL
+    last_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO users (google_id, email, name, last_login)
-VALUES ('example_google_id', 'me@example.com', 'Default', CURRENT_TIMESTAMP);
+INSERT INTO users (google_id, email, name)
+VALUES ('0', 'default@retrogpt.xyz', 'Default User');

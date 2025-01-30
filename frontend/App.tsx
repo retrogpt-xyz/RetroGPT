@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import "./App.css";
 
 import MusicPlayer from "./MusicPlayer";
+import { googleLogout, useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 interface DisplayMessage {
   text: string;
@@ -11,6 +13,18 @@ interface DisplayMessage {
 interface BackendQueryMessage {
   text: string;
   chatId: number | null;
+  sessionToken: string;
+}
+
+interface User {
+  access_token: string;
+}
+
+interface Profile {
+  id: string;
+  picture: string;
+  name: string;
+  email: string;
 }
 
 function App() {
@@ -20,18 +34,37 @@ function App() {
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
 
-  // TODO: Implement session token validation
-  const [_sessToken, setSessToken] = useState("");
+  const [userAccessToken, setUserAccessToken] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  const get_def_sess = async () => {
-    const resp = await fetch("/api/get_def_sess", { method: "GET" });
-    let body = await resp.text();
-    setSessToken(body);
+  const [sessToken, setSessToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+
+  const getSessionToken = async () => {
+    if (!userId) {
+      const resp = await fetch("/api/get_def_sess", { method: "GET" });
+      let body = await resp.text();
+      setSessToken(body);
+      return;
+    }
+
+    await fetch("/api/session", {
+      method: "POST",
+      body: JSON.stringify(userId),
+    }).then(async (resp) => {
+      let sessionToken = await resp.text();
+      console.log(sessionToken);
+      setSessToken(sessionToken);
+    });
   };
 
+  const login = useGoogleLogin({
+    onSuccess: setUserAccessToken,
+  });
+
   useEffect(() => {
-    get_def_sess();
-  }, []);
+    getSessionToken();
+  }, [userId]);
 
   const handleMouseMove = (event: MouseEvent) => {
     setMousePosition({
@@ -47,10 +80,53 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (userAccessToken) {
+      axios
+        .get(
+          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${userAccessToken.access_token}`,
+          {
+            headers: {
+              Authorization: `Bearer ${userAccessToken.access_token}`,
+              Accept: "application/json",
+            },
+          },
+        )
+        .then(async (res) => {
+          console.log(res.data);
+          let profile: Profile = res.data;
+          setProfile(profile);
+          let body = {
+            google_id: profile.id,
+            email: profile.email,
+            name: profile.name,
+          };
+
+          await fetch("/api/auth", {
+            method: "POST",
+            body: JSON.stringify(body),
+          }).then(async (resp) => {
+            let user_id: number = JSON.parse(await resp.text());
+            console.log(user_id);
+            setUserId(user_id);
+          });
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [userAccessToken]);
+
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (sessToken) {
+      headers["X-Session-Token"] = sessToken;
+    }
+
     const response = await fetch("/api/prompt", {
       method: "POST",
       body: JSON.stringify(msg),
+      headers,
     });
 
     const chatIdHeader = response.headers.get("X-Chat-ID");
@@ -93,6 +169,7 @@ function App() {
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
+    if (!sessToken) return;
 
     setDisplayMessages((prev) => [
       ...prev,
@@ -102,6 +179,7 @@ function App() {
     const be_query_msg: BackendQueryMessage = {
       text: inputMessage,
       chatId: chatId,
+      sessionToken: sessToken,
     };
 
     fetchAIResponse(be_query_msg);
@@ -131,7 +209,6 @@ function App() {
         <div className="content-area">
           <div className="chat-window">
             <div className="chat-messages">
-
               {displayMessages.map((message, index) => (
                 <div
                   key={index}
@@ -157,8 +234,25 @@ function App() {
       </div>
 
       {/* Right column with app icons */}
-      <div className="app-column">
 
+      <div className="app-column">
+        {profile ? (
+          <>
+            <p>{profile.name}</p>
+            <img src={profile.picture} alt="Profile" />
+            <button
+              onClick={() => {
+                setProfile(null);
+                setUserId(null);
+                googleLogout();
+              }}
+            >
+              {"logout"}
+            </button>
+          </>
+        ) : (
+          <button onClick={() => login()}>click me</button>
+        )}
         {[
           "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
           "https://64.media.tumblr.com/0d181187c50fedc1c60d1a6c3dd2165d/ec299322d93fd773-53/s540x810/afd900c44adfac375f08a490df747be6384c17d6.png",

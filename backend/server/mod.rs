@@ -26,7 +26,7 @@ pub type OutResp = Response<
 #[macro_export]
 macro_rules! handle_endpoint {
     ($pred:expr, $handler:expr, $cfg:expr, $req:expr) => {
-        if $pred(&$cfg, &$req) {
+        if $pred(&$cfg, &$req).await {
             return Ok($handler(&$cfg, $req).await);
         }
     };
@@ -37,7 +37,10 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
 
     handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
     handle_endpoint!(predicate::serve_static, endpoint::serve_static, cfg, req);
-    // handle_endpoint!(predicate::api_def_sess, endpoint::api_def_sess, cfg, req);
+    handle_endpoint!(predicate::auth, endpoint::auth, cfg, req);
+    handle_endpoint!(predicate::session, endpoint::session, cfg, req);
+    handle_endpoint!(predicate::api_def_sess, endpoint::api_def_sess, cfg, req);
+    handle_endpoint!(predicate::google_auth_client_id, endpoint::google_auth_client_id, cfg, req);
 
     Ok(error::error_400("request did not match any endpoints"))
 }
