@@ -40,9 +40,10 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
     };
 
     let mut conn = db::make_conn().await;
-    if !db::sessions::session_token_is_valid(&mut conn, session_token).await {
-        return Err(error_400("invalid session token"));
-    }
+    let session = match db::sessions::get_session_by_token(&mut conn, session_token).await {
+        Some(sess) => sess,
+        None => return Err(error_400("invalid session token")),
+    };
 
     let bytes = req
         .collect()
@@ -55,6 +56,14 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     let recv_json: crate::gpt::BackendQueryMsg<'_> =
         serde_json::from_str(prompt).ok().ok_or_else(error_500)?;
+
+    if let Some(chat_id) = recv_json.chatId {
+        let chat = get_chat_by_id(&mut conn, chat_id).await;
+
+        if session.user_id != chat.user_id {
+            return Err(error_400("session user ID does not match chat user ID"));
+        }
+    }
 
     let (msg_chain, new_head_id, chat_id) = get_msgs(cfg, recv_json).await;
 

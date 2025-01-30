@@ -81,3 +81,26 @@ async fn delete_session_by_token(conn: &mut AsyncPgConnection, sess_token: &str)
 fn expires_at_is_valid(expires_at: &chrono::NaiveDateTime) -> bool {
     expires_at > &chrono::Utc::now().naive_utc()
 }
+
+pub async fn get_session_by_token(conn: &mut AsyncPgConnection, sess_token: &str) -> Option<Session> {
+    use super::schema::sessions::dsl::*;
+
+    let result: Option<Session> = sessions
+        .filter(session_token.eq(sess_token.to_string()))
+        .select(Session::as_select())
+        .get_result(conn)
+        .await
+        .ok();
+
+    match result {
+        Some(sess) => {
+            if expires_at_is_valid(&sess.expires_at) {
+                Some(sess)
+            } else {
+                delete_session_by_token(conn, &sess.session_token).await;
+                None
+            }
+        }
+        None => None,
+    }
+}

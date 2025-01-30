@@ -66,6 +66,10 @@ function App() {
     getSessionToken();
   }, [userId]);
 
+  useEffect(() => {
+    setDisplayMessages([]);
+  }, [sessToken]);
+
   const handleMouseMove = (event: MouseEvent) => {
     setMousePosition({
       x: event.clientX,
