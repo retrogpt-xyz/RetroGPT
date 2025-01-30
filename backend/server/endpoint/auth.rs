@@ -50,7 +50,8 @@ pub async fn auth_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
 
     let existing_user = db::users::get_user_by_google_id(&mut conn, parsed.google_id.clone()).await;
     if let Some(user) = existing_user {
-        let stream = stream::once(async move { Ok(Frame::data(Bytes::from(user.user_id.to_string()))) });
+        let stream =
+            stream::once(async move { Ok(Frame::data(Bytes::from(user.user_id.to_string()))) });
         let body = form_stream_body(Box::pin(stream));
 
         return Response::builder()

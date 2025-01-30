@@ -40,6 +40,7 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
     handle_endpoint!(predicate::auth, endpoint::auth, cfg, req);
     handle_endpoint!(predicate::session, endpoint::session, cfg, req);
     handle_endpoint!(predicate::api_def_sess, endpoint::api_def_sess, cfg, req);
+    handle_endpoint!(predicate::api_chats, endpoint::api_chats, cfg, req);
 
     Ok(error::error_400("request did not match any endpoints"))
 }

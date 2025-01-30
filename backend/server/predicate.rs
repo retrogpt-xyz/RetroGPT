@@ -24,3 +24,7 @@ pub async fn auth(_cfg: &Cfg, req: &IncReqst) -> bool {
 pub async fn session(_cfg: &Cfg, req: &IncReqst) -> bool {
     req.uri().path().starts_with("/api/session")
 }
+
+pub async fn api_chats(_cfg: &Cfg, req: &IncReqst) -> bool {
+    req.uri().path().starts_with("/api/chats")
+}

@@ -80,3 +80,13 @@ pub async fn get_user_by_google_id(
         .ok()
 }
 
+pub async fn get_users_chats(conn: &mut AsyncPgConnection, user: &User) -> Vec<super::chats::Chat> {
+    use super::schema::chats::dsl::*;
+
+    chats
+        .filter(user_id.eq(user.user_id))
+        .select(super::chats::Chat::as_select())
+        .load(conn)
+        .await
+        .unwrap()
+}
