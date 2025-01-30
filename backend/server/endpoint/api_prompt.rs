@@ -65,7 +65,7 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         }
     }
 
-    let (msg_chain, new_head_id, chat_id) = get_msgs(cfg, recv_json).await;
+    let (msg_chain, new_head_id, chat_id) = get_msgs(cfg, recv_json, session.user_id).await;
 
     let client = async_openai::Client::with_config(
         async_openai::config::OpenAIConfig::new().with_api_key(&cfg.api_key),
@@ -112,11 +112,10 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     let (stream_tx, mut rx) = futures::channel::mpsc::unbounded::<String>();
 
-    let def_user = crate::db::users::get_default_user(&mut conn).await;
     let (body_tx, msg) = crate::db::msgs::create_placeholder_msg(
         &mut conn,
         "ai",
-        def_user.user_id,
+        session.user_id,
         Some(new_head_id),
     )
     .await;
@@ -154,9 +153,12 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         .map_err(|_| error_500())
 }
 
-async fn get_msgs(cfg: &Cfg, recvd: crate::gpt::BackendQueryMsg<'_>) -> (Vec<Msg>, i32, i32) {
+async fn get_msgs(
+    cfg: &Cfg,
+    recvd: crate::gpt::BackendQueryMsg<'_>,
+    user_id: i32,
+) -> (Vec<Msg>, i32, i32) {
     let mut conn = cfg.db_conn.lock().await;
-    let def_user = crate::db::users::get_default_user(&mut conn).await;
     let (chat, msg) = match recvd.chatId {
         Some(id) => {
             println!("I received a chat id reference of {}", id);
@@ -165,7 +167,7 @@ async fn get_msgs(cfg: &Cfg, recvd: crate::gpt::BackendQueryMsg<'_>) -> (Vec<Msg
                 &mut conn,
                 &recvd.text,
                 "user",
-                def_user.user_id,
+                user_id,
                 Some(chat.head_msg),
             )
             .await;
@@ -173,7 +175,7 @@ async fn get_msgs(cfg: &Cfg, recvd: crate::gpt::BackendQueryMsg<'_>) -> (Vec<Msg
             (chat, msg)
         }
         None => {
-            let msg = create_msg(&mut conn, &recvd.text, "user", def_user.user_id, None).await;
+            let msg = create_msg(&mut conn, &recvd.text, "user", user_id, None).await;
             let chat = create_chat(&mut conn, &msg).await;
             println!("Created new DB chat instance with id {}", chat.id);
             (chat, msg)
