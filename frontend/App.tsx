@@ -66,7 +66,7 @@ function App() {
     }).then(async (resp) => {
       if (resp.status != 200) return;
 
-      let body = await resp.json();
+      const body = await resp.json();
       setUserOwnedChats(body);
     });
   }, [userId, sessToken, chatId]);
@@ -74,7 +74,7 @@ function App() {
   const getSessionToken = async () => {
     if (!userId) {
       const resp = await fetch("/api/get_def_sess", { method: "GET" });
-      let body = await resp.text();
+      const body = await resp.text();
       setSessToken(body);
       return;
     }
@@ -83,7 +83,7 @@ function App() {
       method: "POST",
       body: JSON.stringify(userId),
     }).then(async (resp) => {
-      let sessionToken = await resp.text();
+      const sessionToken = await resp.text();
       console.log(sessionToken);
       setSessToken(sessionToken);
     });
@@ -111,7 +111,7 @@ function App() {
       },
       body: chatId.toString(),
     }).then(async (resp) => {
-      let msgs: DisplayMessage[] = JSON.parse(await resp.text());
+      const msgs: DisplayMessage[] = JSON.parse(await resp.text());
       console.log(msgs);
       console.log(displayMessages);
       if (JSON.stringify(msgs) === JSON.stringify(displayMessages)) {
@@ -163,9 +163,9 @@ function App() {
         )
         .then(async (res) => {
           console.log(res.data);
-          let profile: Profile = res.data;
+          const profile: Profile = res.data;
           setProfile(profile);
-          let body = {
+          const body = {
             google_id: profile.id,
             email: profile.email,
             name: profile.name,
@@ -175,7 +175,7 @@ function App() {
             method: "POST",
             body: JSON.stringify(body),
           }).then(async (resp) => {
-            let user_id: number = JSON.parse(await resp.text());
+            const user_id: number = JSON.parse(await resp.text());
             console.log(user_id);
             setUserId(user_id);
           });
@@ -209,7 +209,7 @@ function App() {
     // Append a new message for streaming
     setDisplayMessages((prev) => [
       ...prev,
-      { text: "...", sender: "ai" as "ai" },
+      { text: "...", sender: "ai" as const },
     ]);
 
     const messageIndex = displayMessages.length + 1;
@@ -224,7 +224,7 @@ function App() {
         const updatedMessages = [...prev];
         updatedMessages[messageIndex] = {
           text: aiResponse,
-          sender: "ai" as "ai",
+          sender: "ai" as const,
         };
         return updatedMessages;
       });
