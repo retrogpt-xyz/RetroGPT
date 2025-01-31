@@ -79,7 +79,7 @@ pub async fn create_placeholder_msg(
     prnt_id: Option<i32>,
 ) -> (oneshot::Sender<String>, Msg) {
     // Create a placeholder message
-    let placeholder_msg = create_msg(conn, "Placeholder message", msg_sender, uid, prnt_id).await;
+    let placeholder_msg = create_msg(conn, "if this message is every displayed, something is very wrong", msg_sender, uid, prnt_id).await;
 
     // Create a oneshot channel
     let (tx, rx) = oneshot::channel();

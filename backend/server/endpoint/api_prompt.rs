@@ -8,13 +8,13 @@ use futures::StreamExt;
 use http_body_util::BodyExt;
 use hyper::{
     body::{Body, Bytes, Frame},
-    header::CONTENT_TYPE,
     Response, StatusCode,
 };
 
 use crate::{
     cfg::Cfg,
     db::{
+        self,
         chats::{add_to_chat, create_chat, get_chat_by_id},
         msgs::{create_msg, Msg},
     },
@@ -33,6 +33,17 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         return Err(error_400("request body is too large"));
     }
 
+    let session_token = match req.headers().get("X-Session-Token") {
+        Some(s) => s.to_str().map_err(|_| error_500())?,
+        None => return Err(error_400("no session token provided")),
+    };
+
+    let mut conn = db::make_conn().await;
+    let session = match db::sessions::get_session_by_token(&mut conn, session_token).await {
+        Some(sess) => sess,
+        None => return Err(error_400("invalid session token")),
+    };
+
     let bytes = req
         .collect()
         .await
@@ -45,7 +56,15 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
     let recv_json: crate::gpt::BackendQueryMsg<'_> =
         serde_json::from_str(prompt).ok().ok_or_else(error_500)?;
 
-    let (msg_chain, new_head_id, chat_id) = get_msgs(cfg, recv_json).await;
+    if let Some(chat_id) = recv_json.chatId {
+        let chat = get_chat_by_id(&mut conn, chat_id).await;
+
+        if session.user_id != chat.user_id {
+            return Err(error_400("session user ID does not match chat user ID"));
+        }
+    }
+
+    let (msg_chain, new_head_id, chat_id) = get_msgs(cfg, recv_json, session.user_id).await;
 
     let client = async_openai::Client::with_config(
         async_openai::config::OpenAIConfig::new().with_api_key(&cfg.api_key),
@@ -92,12 +111,10 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     let (stream_tx, mut rx) = futures::channel::mpsc::unbounded::<String>();
 
-    let mut conn = cfg.db_conn.lock().await;
-    let def_user = crate::db::users::get_default_user(&mut conn).await;
     let (body_tx, msg) = crate::db::msgs::create_placeholder_msg(
         &mut conn,
         "ai",
-        def_user.user_id,
+        session.user_id,
         Some(new_head_id),
     )
     .await;
@@ -129,32 +146,28 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     Response::builder()
         .status(StatusCode::OK)
-        .header(CONTENT_TYPE, "application/json")
         .header("X-Chat-ID", chat_id.to_string())
         .body(crate::server::form_stream_body(Box::pin(resp_stream)))
         .map_err(|_| error_500())
 }
 
-async fn get_msgs(cfg: &Cfg, recvd: crate::gpt::BackendQueryMsg<'_>) -> (Vec<Msg>, i32, i32) {
+async fn get_msgs(
+    cfg: &Cfg,
+    recvd: crate::gpt::BackendQueryMsg<'_>,
+    user_id: i32,
+) -> (Vec<Msg>, i32, i32) {
     let mut conn = cfg.db_conn.lock().await;
-    let def_user = crate::db::users::get_default_user(&mut conn).await;
     let (chat, msg) = match recvd.chatId {
         Some(id) => {
             println!("I received a chat id reference of {}", id);
             let chat = get_chat_by_id(&mut conn, id).await;
-            let msg = create_msg(
-                &mut conn,
-                &recvd.text,
-                "user",
-                def_user.user_id,
-                Some(chat.head_msg),
-            )
-            .await;
+            let msg =
+                create_msg(&mut conn, &recvd.text, "user", user_id, Some(chat.head_msg)).await;
             let chat = add_to_chat(&mut conn, &chat, &msg).await;
             (chat, msg)
         }
         None => {
-            let msg = create_msg(&mut conn, &recvd.text, "user", def_user.user_id, None).await;
+            let msg = create_msg(&mut conn, &recvd.text, "user", user_id, None).await;
             let chat = create_chat(&mut conn, &msg).await;
             println!("Created new DB chat instance with id {}", chat.id);
             (chat, msg)

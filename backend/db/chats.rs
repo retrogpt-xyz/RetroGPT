@@ -12,6 +12,7 @@ pub struct Chat {
     pub user_id: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
+    pub name: String,
 }
 
 #[derive(Insertable)]
@@ -20,6 +21,7 @@ pub struct Chat {
 struct NewChat {
     pub head_msg: i32,
     pub user_id: i32,
+    pub name: String,
 }
 
 pub async fn get_chat_by_id(conn: &mut AsyncPgConnection, chat_id: i32) -> Chat {
@@ -37,6 +39,7 @@ pub async fn create_chat(conn: &mut AsyncPgConnection, msg: &super::msgs::Msg) -
     let chat = NewChat {
         head_msg: msg.id,
         user_id: msg.user_id,
+        name: "Untitled Chat".to_string(),
     };
 
     use super::schema::chats::dsl::*;
