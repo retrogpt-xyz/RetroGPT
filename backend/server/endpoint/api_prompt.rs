@@ -8,7 +8,6 @@ use futures::StreamExt;
 use http_body_util::BodyExt;
 use hyper::{
     body::{Body, Bytes, Frame},
-    header::CONTENT_TYPE,
     Response, StatusCode,
 };
 
@@ -147,7 +146,6 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     Response::builder()
         .status(StatusCode::OK)
-        .header(CONTENT_TYPE, "application/json")
         .header("X-Chat-ID", chat_id.to_string())
         .body(crate::server::form_stream_body(Box::pin(resp_stream)))
         .map_err(|_| error_500())
@@ -163,14 +161,8 @@ async fn get_msgs(
         Some(id) => {
             println!("I received a chat id reference of {}", id);
             let chat = get_chat_by_id(&mut conn, id).await;
-            let msg = create_msg(
-                &mut conn,
-                &recvd.text,
-                "user",
-                user_id,
-                Some(chat.head_msg),
-            )
-            .await;
+            let msg =
+                create_msg(&mut conn, &recvd.text, "user", user_id, Some(chat.head_msg)).await;
             let chat = add_to_chat(&mut conn, &chat, &msg).await;
             (chat, msg)
         }

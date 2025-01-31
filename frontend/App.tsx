@@ -62,12 +62,46 @@ function App() {
     onSuccess: setUserAccessToken,
   });
 
+  const syncMessages = async () => {
+    if (!chatId) {
+      setDisplayMessages([]);
+      return;
+    }
+
+    if (!sessToken) {
+      setDisplayMessages([]);
+      return;
+    }
+
+    fetch("/api/chat/messages", {
+      method: "POST",
+      headers: {
+        "X-Session-Token": sessToken,
+      },
+      body: chatId.toString(),
+    }).then(async (resp) => {
+      let msgs: DisplayMessage[] = JSON.parse(await resp.text());
+      console.log(msgs);
+      console.log(displayMessages);
+      if (JSON.stringify(msgs) === JSON.stringify(displayMessages)) {
+        return;
+      }
+      console.log("got different messages from the server");
+      setDisplayMessages(msgs);
+    });
+  };
+
+  useEffect(() => {
+    syncMessages();
+  }, [chatId]);
+
   useEffect(() => {
     getSessionToken();
   }, [userId]);
 
   useEffect(() => {
     setDisplayMessages([]);
+    setChatId(null);
   }, [sessToken]);
 
   const handleMouseMove = (event: MouseEvent) => {
@@ -133,11 +167,6 @@ function App() {
       headers,
     });
 
-    const chatIdHeader = response.headers.get("X-Chat-ID");
-    if (chatIdHeader) {
-      setChatId(parseInt(chatIdHeader, 10));
-    }
-
     const reader = response.body?.getReader();
     if (!reader) {
       console.error("Failed to get reader from response body.");
@@ -168,6 +197,14 @@ function App() {
         };
         return updatedMessages;
       });
+    }
+
+    const chatIdHeader = response.headers.get("X-Chat-ID");
+
+    if (chatId) setTimeout(() => syncMessages(), 1000);
+
+    if (chatIdHeader) {
+      setChatId(parseInt(chatIdHeader));
     }
   };
 
