@@ -62,7 +62,7 @@ pub async fn api_chats_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRes
         get_users_chats(&mut conn, &user)
             .await
             .into_iter()
-            .map(|chat| chat.id)
+            .map(|chat| json!({"id": chat.id, "name": chat.name}))
             .collect::<Vec<_>>()
     };
 

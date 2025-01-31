@@ -7,6 +7,7 @@ diesel::table! {
         user_id -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        name -> Varchar,
     }
 }
 
@@ -47,4 +48,9 @@ diesel::joinable!(chats -> users (user_id));
 diesel::joinable!(msgs -> users (user_id));
 diesel::joinable!(sessions -> users (user_id));
 
-diesel::allow_tables_to_appear_in_same_query!(chats, msgs, sessions, users,);
+diesel::allow_tables_to_appear_in_same_query!(
+    chats,
+    msgs,
+    sessions,
+    users,
+);

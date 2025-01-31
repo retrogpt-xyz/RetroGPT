@@ -40,17 +40,19 @@ function App() {
   const [sessToken, setSessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
 
-  const [userChatIds, setUserChatIds] = useState<number[]>([]);
+  const [userOwnedChats, setUserOwnedChats] = useState<
+    { id: number; name: string }[]
+  >([]);
 
-  const displayLoginOpts = false;
+  const displayLoginOpts = true;
 
   useEffect(() => {
     if (!sessToken) {
-      setUserChatIds([]);
+      setUserOwnedChats([]);
       return;
     }
     if (!userId) {
-      setUserChatIds([]);
+      setUserOwnedChats([]);
       return;
     }
 
@@ -65,7 +67,7 @@ function App() {
       if (resp.status != 200) return;
 
       let body = await resp.json();
-      setUserChatIds(body);
+      setUserOwnedChats(body);
     });
   }, [userId, sessToken, chatId]);
 
@@ -237,9 +239,11 @@ function App() {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     if (!sessToken) return;
+
+    await syncMessages();
 
     setDisplayMessages((prev) => [
       ...prev,
@@ -330,9 +334,9 @@ function App() {
 
         <div>
           {displayLoginOpts &&
-            userChatIds.map((id) => (
+            userOwnedChats.map(({ id: id, name: name }) => (
               <button key={id} onClick={() => setChatId(id)}>
-                {id}
+                {name}
               </button>
             ))}
         </div>
