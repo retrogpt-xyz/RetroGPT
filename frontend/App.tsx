@@ -319,7 +319,7 @@ function App() {
             </button>
           </>
         ) : (
-          <button onClick={() => login()}>click me</button>
+          <button onClick={() => login()}>login</button>
         )}
         <button onClick={() => setChatId(null)}>new chat</button>
         <div>
