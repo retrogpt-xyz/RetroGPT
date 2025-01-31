@@ -40,6 +40,33 @@ function App() {
   const [sessToken, setSessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
 
+  const [userChatIds, setUserChatIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (!sessToken) {
+      setUserChatIds([]);
+      return;
+    }
+    if (!userId) {
+      setUserChatIds([]);
+      return;
+    }
+
+    fetch("/api/chats", {
+      body: userId.toString(),
+      method: "POST",
+      headers: {
+        "X-Session-Token": sessToken,
+        "Content-Type": "application/json",
+      },
+    }).then(async (resp) => {
+      if (resp.status != 200) return;
+
+      let body = await resp.json();
+      setUserChatIds(body);
+    });
+  }, [userId, sessToken, chatId]);
+
   const getSessionToken = async () => {
     if (!userId) {
       const resp = await fetch("/api/get_def_sess", { method: "GET" });
@@ -294,6 +321,19 @@ function App() {
         ) : (
           <button onClick={() => login()}>click me</button>
         )}
+        <button onClick={() => setChatId(null)}>new chat</button>
+        <div>
+          {userChatIds.map((id) => (
+            <button
+              key={id}
+              onClick={() => {
+                setChatId(id);
+              }}
+            >
+              {id}
+            </button>
+          ))}
+        </div>
         {[
           "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
           "https://64.media.tumblr.com/0d181187c50fedc1c60d1a6c3dd2165d/ec299322d93fd773-53/s540x810/afd900c44adfac375f08a490df747be6384c17d6.png",
