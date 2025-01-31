@@ -42,6 +42,8 @@ function App() {
 
   const [userChatIds, setUserChatIds] = useState<number[]>([]);
 
+  const displayLoginOpts = false;
+
   useEffect(() => {
     if (!sessToken) {
       setUserChatIds([]);
@@ -302,37 +304,37 @@ function App() {
       </div>
 
       {/* Right column with app icons */}
-
       <div className="app-column">
-        {profile ? (
-          <>
-            <p>{profile.name}</p>
-            <img src={profile.picture} alt="Profile" />
-            <button
-              onClick={() => {
-                setProfile(null);
-                setUserId(null);
-                googleLogout();
-              }}
-            >
-              {"logout"}
-            </button>
-          </>
-        ) : (
-          <button onClick={() => login()}>login</button>
-        )}
-        <button onClick={() => setChatId(null)}>new chat</button>
-        <div>
-          {userChatIds.map((id) => (
-            <button
-              key={id}
-              onClick={() => {
-                setChatId(id);
-              }}
-            >
-              {id}
-            </button>
+        {displayLoginOpts &&
+          (profile ? (
+            <>
+              <p>{profile.name}</p>
+              <img src={profile.picture} alt="Profile" />
+              <button
+                onClick={() => {
+                  setProfile(null);
+                  setUserId(null);
+                  googleLogout();
+                }}
+              >
+                {"logout"}
+              </button>
+            </>
+          ) : (
+            <button onClick={() => login()}>login</button>
           ))}
+
+        {displayLoginOpts && (
+          <button onClick={() => setChatId(null)}>new chat</button>
+        )}
+
+        <div>
+          {displayLoginOpts &&
+            userChatIds.map((id) => (
+              <button key={id} onClick={() => setChatId(id)}>
+                {id}
+              </button>
+            ))}
         </div>
         {[
           "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
