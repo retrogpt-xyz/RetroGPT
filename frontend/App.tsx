@@ -44,7 +44,7 @@ function App() {
     { id: number; name: string }[]
   >([]);
 
-  const displayLoginOpts = true;
+  const displayLoginOpts = false;
 
   useEffect(() => {
     if (!sessToken) {
