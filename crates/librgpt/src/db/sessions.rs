@@ -20,7 +20,8 @@ pub async fn get_session(conn: &mut AsyncPgConnection, user: &super::users::User
         .filter(user_id.eq(user.user_id))
         .select(Session::as_select())
         .get_result(conn)
-        .await {
+        .await
+    {
         if expires_at_is_valid(&sess.expires_at) {
             return sess;
         } else {
