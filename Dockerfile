@@ -53,6 +53,7 @@ COPY --from=backend-builder /app/target/release/retro_gpt_backend .
 COPY --from=frontend-builder /app/static/ static/
 COPY --from=diesel-builder /usr/local/cargo/bin/diesel .
 COPY migrations/ migrations/
+COPY frontend/assets/favicon.ico static/
 COPY diesel.toml .
 
 EXPOSE 3000
