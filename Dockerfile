@@ -2,16 +2,28 @@ FROM rust@sha256:a45bf1f5d9af0a23b26703b3500d70af1abff7f984a7abef5a104b42c02a292
 
 WORKDIR /app
 
+# Copy workspace configuration and lock file first
 COPY Cargo.toml Cargo.lock ./
 
-RUN mkdir backend/ && \
-  echo "fn main() {}" > backend/main.rs && \
-  touch backend/lib.rs && \
-  cargo build --release && \
-  rm -rf backend
+# Create dummy crates structure to cache dependencies
+RUN mkdir -p crates/rgpt crates/librgpt
+COPY crates/rgpt/Cargo.toml crates/rgpt/
+COPY crates/librgpt/Cargo.toml crates/librgpt/
 
-COPY backend/ backend/
-RUN touch backend/main.rs && touch backend/lib.rs
+RUN mkdir -p crates/rgpt/src && \
+  echo "fn main() {}" > crates/rgpt/src/main.rs && \
+  mkdir -p crates/librgpt/src && \
+  echo "pub fn dummy() {}" > crates/librgpt/src/lib.rs
+
+RUN cargo build --release
+
+RUN rm -rf crates/*/src
+
+COPY crates/rgpt/src crates/rgpt/src
+COPY crates/librgpt/src crates/librgpt/src
+
+RUN touch crates/rgpt/src/main.rs && \
+  touch crates/librgpt/src/lib.rs
 
 RUN cargo build --release
 
@@ -49,7 +61,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --from=backend-builder /app/target/release/retro_gpt_backend .
+COPY --from=backend-builder /app/target/release/rgpt .
 COPY --from=frontend-builder /app/static/ static/
 COPY --from=diesel-builder /usr/local/cargo/bin/diesel .
 COPY migrations/ migrations/
@@ -60,4 +72,4 @@ EXPOSE 3000
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-CMD ["./retro_gpt_backend"]
+CMD ["./rgpt"]
