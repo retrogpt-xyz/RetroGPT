@@ -1,0 +1,67 @@
+.menu-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 5px 15px;
+    font-family: "Courier New", Courier, monospace;
+    background-color: #c0c0c0; 
+    border-bottom: 2px solid #999;
+    border-left: 2px solid #999;
+    border-right: 2px solid #999;
+    width: fit-content;
+    position: relative;
+  }
+  
+  .menu-item {
+    position: relative; /* Needed for dropdown positioning */
+    cursor: pointer;
+  }
+  
+  .menu-button {
+    padding: 5px 10px;
+    background: #c0c0c0;
+    border: 2px outset #808080;
+  }
+  
+  .menu-button:hover {
+    background: #a0a0a0;
+  }
+  
+  .dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #c0c0c0;
+    border: 2px solid #808080;
+    box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
+    min-width: 120px;
+    z-index: 100;
+  }
+  
+  .dropdown-item {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #999;
+  }
+  
+  .dropdown-item:last-child {
+    border-bottom: none;
+  }
+  
+  .dropdown-item:hover {
+    background: #404040;
+    color: white;
+  }
+  
+  .exit-button {
+    background: #c62323;
+    border-radius: 2px;
+    border-color: #999;
+    text-align: center;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    color: white;
+    margin-left: auto;
+  }

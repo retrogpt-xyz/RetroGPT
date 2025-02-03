@@ -279,6 +279,7 @@ function App() {
 
       {/* Center window - Chat Interface */}
       <div className="main-window">
+        <div><MenuBar /> </div> 
         <div className="header-bar"></div>
         <div className="content-area">
           <div className="chat-window">
@@ -299,6 +300,11 @@ function App() {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSendMessage();
+                  }
+                }}
                 placeholder="Type your message..."
               />
               <button onClick={handleSendMessage}>Send</button>
