@@ -1,0 +1,1 @@
+ALTER TABLE chats ALTER COLUMN head_msg SET NOT NULL;

@@ -5,3 +5,5 @@ edition.workspace = true
 
 [dependencies]
 diesel = { version = "2.2.6", features = ["chrono", "postgres"] }
+diesel-async = { version = "0.5.2", features = ["postgres"] }
+chrono = "0.4.39"

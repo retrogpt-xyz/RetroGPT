@@ -161,8 +161,7 @@ async fn get_msgs(
         Some(id) => {
             println!("I received a chat id reference of {}", id);
             let chat = get_chat_by_id(&mut conn, id).await;
-            let msg =
-                create_msg(&mut conn, &recvd.text, "user", user_id, Some(chat.head_msg)).await;
+            let msg = create_msg(&mut conn, &recvd.text, "user", user_id, chat.head_msg).await;
             let chat = add_to_chat(&mut conn, &chat, &msg).await;
             (chat, msg)
         }
@@ -176,10 +175,10 @@ async fn get_msgs(
 
     let new_head_id = chat.head_msg;
 
-    println!("new head id is {}", new_head_id);
+    println!("new head id is {}", new_head_id.unwrap());
     println!("created measage id is {}", msg.id);
 
     let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
 
-    (msg_chain, new_head_id, chat.id)
+    (msg_chain, new_head_id.unwrap(), chat.id)
 }

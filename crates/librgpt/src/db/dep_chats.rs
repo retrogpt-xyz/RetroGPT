@@ -8,7 +8,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Chat {
     pub id: i32,
-    pub head_msg: i32,
+    pub head_msg: Option<i32>,
     pub user_id: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,

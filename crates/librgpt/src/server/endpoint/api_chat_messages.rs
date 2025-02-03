@@ -56,7 +56,7 @@ pub async fn api_chat_messages_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp
     }
 
     // Get all messages in the chat's message tree
-    let head_msg = db::msgs::get_msg_by_id(&mut conn, chat.head_msg).await;
+    let head_msg = db::msgs::get_msg_by_id(&mut conn, chat.head_msg.unwrap()).await;
     let mut messages = db::msgs::get_all_parents(&mut conn, head_msg).await;
     messages.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 
