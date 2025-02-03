@@ -15,7 +15,7 @@ use crate::{
     cfg::Cfg,
     db::{
         self,
-        chats::{add_to_chat, create_chat, get_chat_by_id},
+        dep_chats::{add_to_chat, create_chat, get_chat_by_id},
         msgs::{create_msg, Msg},
     },
     server::{

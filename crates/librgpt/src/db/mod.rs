@@ -4,7 +4,8 @@ use diesel_async::{AsyncConnection, AsyncPgConnection};
 
 pub mod schema;
 
-pub mod chats;
+pub mod dep_chats;
+
 pub mod msgs;
 pub mod sessions;
 pub mod users;

@@ -48,7 +48,7 @@ pub async fn api_chat_messages_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp
     let chat_id = chat_id.as_ref().parse().map_err(|_| error_500())?;
 
     // Get the chat
-    let chat = db::chats::get_chat_by_id(&mut conn, chat_id).await;
+    let chat = db::dep_chats::get_chat_by_id(&mut conn, chat_id).await;
 
     // Validate that the session user owns the chat
     if session.user_id != chat.user_id {
