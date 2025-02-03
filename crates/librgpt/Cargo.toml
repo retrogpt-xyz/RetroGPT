@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rgpt-db.workspace = true
+
 async-openai = "0.27.2"
 chrono = "0.4.39"
 diesel = { version = "2.2.6", features = ["chrono", "postgres"] }

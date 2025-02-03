@@ -9,9 +9,11 @@ use hyper::{
 };
 use serde::Deserialize;
 
+use rgpt_db::schema::users;
+
 use crate::{
     cfg::Cfg,
-    db::{self, schema::users},
+    db,
     server::{
         error::{error_400, error_500},
         form_stream_body, IncReqst, OutResp,

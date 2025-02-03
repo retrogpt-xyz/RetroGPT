@@ -4,7 +4,7 @@ use diesel::{
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 #[derive(Queryable, Selectable, Insertable)]
-#[diesel(table_name = super::schema::sessions)]
+#[diesel(table_name = rgpt_db::schema::sessions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Session {
     pub session_token: String,
@@ -14,7 +14,7 @@ pub struct Session {
 }
 
 pub async fn get_session(conn: &mut AsyncPgConnection, user: &super::users::User) -> Session {
-    use super::schema::sessions::dsl::*;
+    use rgpt_db::schema::sessions::dsl::*;
 
     if let Ok(sess) = sessions
         .filter(user_id.eq(user.user_id))
@@ -43,7 +43,7 @@ pub async fn get_session(conn: &mut AsyncPgConnection, user: &super::users::User
 }
 
 pub async fn session_token_is_valid(conn: &mut AsyncPgConnection, sess_token: &str) -> bool {
-    use super::schema::sessions::dsl::*;
+    use rgpt_db::schema::sessions::dsl::*;
 
     let results: Option<Session> = sessions
         .filter(session_token.eq(sess_token.to_string()))
@@ -66,7 +66,7 @@ pub async fn session_token_is_valid(conn: &mut AsyncPgConnection, sess_token: &s
 }
 
 async fn delete_session_by_token(conn: &mut AsyncPgConnection, sess_token: &str) {
-    use super::schema::sessions::dsl::*;
+    use rgpt_db::schema::sessions::dsl::*;
 
     diesel::delete(sessions.filter(session_token.eq(sess_token)))
         .execute(conn)
@@ -82,7 +82,7 @@ pub async fn get_session_by_token(
     conn: &mut AsyncPgConnection,
     sess_token: &str,
 ) -> Option<Session> {
-    use super::schema::sessions::dsl::*;
+    use rgpt_db::schema::sessions::dsl::*;
 
     let result: Option<Session> = sessions
         .filter(session_token.eq(sess_token))

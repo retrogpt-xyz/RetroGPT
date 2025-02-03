@@ -2,8 +2,6 @@ use std::{env, process::Command};
 
 use diesel_async::{AsyncConnection, AsyncPgConnection};
 
-pub mod schema;
-
 pub mod dep_chats;
 
 pub mod msgs;

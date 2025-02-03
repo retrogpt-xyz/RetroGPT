@@ -4,7 +4,7 @@ use diesel::{
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 #[derive(Queryable, Selectable)]
-#[diesel(table_name = super::schema::chats)]
+#[diesel(table_name = rgpt_db::schema::chats)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Chat {
     pub id: i32,
@@ -16,7 +16,7 @@ pub struct Chat {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = super::schema::chats)]
+#[diesel(table_name = rgpt_db::schema::chats)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 struct NewChat {
     pub head_msg: i32,
@@ -25,7 +25,7 @@ struct NewChat {
 }
 
 pub async fn get_chat_by_id(conn: &mut AsyncPgConnection, chat_id: i32) -> Chat {
-    use super::schema::chats::dsl::*;
+    use rgpt_db::schema::chats::dsl::*;
 
     chats
         .find(chat_id)
@@ -42,7 +42,7 @@ pub async fn create_chat(conn: &mut AsyncPgConnection, msg: &super::msgs::Msg) -
         name: "Untitled Chat".to_string(),
     };
 
-    use super::schema::chats::dsl::*;
+    use rgpt_db::schema::chats::dsl::*;
 
     diesel::insert_into(chats)
         .values(chat)
@@ -57,7 +57,7 @@ pub async fn add_to_chat(
     chat: &Chat,
     msg: &super::msgs::Msg,
 ) -> Chat {
-    use super::schema::chats::dsl::*;
+    use rgpt_db::schema::chats::dsl::*;
 
     diesel::update(chats.find(chat.id))
         .set((

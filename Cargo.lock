@@ -989,6 +989,7 @@ dependencies = [
  "hyper-util",
  "mime_guess",
  "reqwest",
+ "rgpt-db",
  "serde",
  "serde_json",
  "tokio",
@@ -1473,6 +1474,13 @@ name = "rgpt"
 version = "0.1.0"
 dependencies = [
  "librgpt",
+]
+
+[[package]]
+name = "rgpt-db"
+version = "0.1.0"
+dependencies = [
+ "diesel",
 ]
 
 [[package]]

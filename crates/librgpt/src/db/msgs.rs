@@ -5,7 +5,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use tokio::sync::oneshot;
 
 #[derive(Queryable, Selectable)]
-#[diesel(table_name = super::schema::msgs)]
+#[diesel(table_name = rgpt_db::schema::msgs)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Msg {
     pub id: i32,
@@ -17,7 +17,7 @@ pub struct Msg {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = super::schema::msgs)]
+#[diesel(table_name = rgpt_db::schema::msgs)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 struct NewMsg {
     pub body: String,
@@ -27,7 +27,7 @@ struct NewMsg {
 }
 
 pub async fn get_msg_by_id(conn: &mut AsyncPgConnection, query_id: i32) -> Msg {
-    use super::schema::msgs::dsl::*;
+    use rgpt_db::schema::msgs::dsl::*;
 
     msgs.filter(id.eq(query_id))
         .select(Msg::as_select())
@@ -62,7 +62,7 @@ pub async fn create_msg(
         parent_message_id: prnt_id,
     };
 
-    use super::schema::msgs::dsl::*;
+    use rgpt_db::schema::msgs::dsl::*;
 
     diesel::insert_into(msgs)
         .values(msg)
@@ -98,8 +98,8 @@ pub async fn create_placeholder_msg(
 
         if let Ok(new_body) = rx.await {
             // Update the message with the new body
-            diesel::update(super::schema::msgs::dsl::msgs.find(placeholder_msg.id))
-                .set(super::schema::msgs::dsl::body.eq(new_body))
+            diesel::update(rgpt_db::schema::msgs::dsl::msgs.find(placeholder_msg.id))
+                .set(rgpt_db::schema::msgs::dsl::body.eq(new_body))
                 .execute(&mut new_conn) // Use the new connection
                 .await
                 .unwrap();
