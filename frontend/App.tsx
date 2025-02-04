@@ -4,6 +4,7 @@ import "./App.css";
 import MusicPlayer from "./MusicPlayer";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import MenuBar from "./MenuBar";
 
 interface DisplayMessage {
   text: string;
@@ -279,7 +280,9 @@ function App() {
 
       {/* Center window - Chat Interface */}
       <div className="main-window">
-        <div><MenuBar /> </div> 
+        <div>
+          <MenuBar />
+        </div>
         <div className="header-bar"></div>
         <div className="content-area">
           <div className="chat-window">
