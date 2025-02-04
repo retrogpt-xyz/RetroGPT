@@ -2,14 +2,11 @@ use std::convert::identity;
 
 use http_body_util::BodyExt;
 use hyper::{body::Body, Response, StatusCode};
+use rgpt_db::{session::Session, user::User};
 use serde_json::json;
 
 use crate::{
     cfg::Cfg,
-    db::{
-        self,
-        users::{get_default_user, get_user_by_id, get_users_chats},
-    },
     server::{
         error::{error_400, error_500},
         form_stream_body, IncReqst, OutResp,
@@ -30,11 +27,9 @@ pub async fn api_chats_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRes
         None => return Err(error_400("no session token provided")),
     };
 
-    let mut conn = db::make_conn().await;
-    let session = match db::sessions::get_session_by_token(&mut conn, session_token).await {
-        Some(sess) => sess,
-        None => return Err(error_400("invalid session token")),
-    };
+    let session = Session::get_by_token(&cfg.db_url, session_token.to_string())
+        .await
+        .map_err(|_| error_400("bad token"))?;
 
     // Get the user ID from the request body
     let bytes = req
@@ -53,14 +48,17 @@ pub async fn api_chats_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRes
     }
 
     // Get the default user
-    let default_user = get_default_user(&mut conn).await;
+    let default_user = User::default(&cfg.db_url).await.unwrap();
 
     let chat_ids = if user_id == default_user.user_id {
         Vec::new()
     } else {
-        let user = get_user_by_id(&mut conn, user_id).await;
-        get_users_chats(&mut conn, &user)
+        User::get_by_id(&cfg.db_url, user_id)
             .await
+            .map_err(|_| error_500())?
+            .get_chats(&cfg.db_url)
+            .await
+            .map_err(|_| error_500())?
             .into_iter()
             .map(|chat| json!({"id": chat.id, "name": chat.name}))
             .collect::<Vec<_>>()

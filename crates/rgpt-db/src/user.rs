@@ -70,7 +70,7 @@ impl User {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
         schema::users::table
-            .find(0)
+            .find(1)
             .first(conn)
             .await
             .map_err(|e| e.into())
