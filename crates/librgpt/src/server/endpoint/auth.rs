@@ -9,11 +9,10 @@ use hyper::{
 };
 use serde::Deserialize;
 
-use rgpt_db::schema::users;
+use rgpt_db::{schema::users, user::User};
 
 use crate::{
     cfg::Cfg,
-    db,
     server::{
         error::{error_400, error_500},
         form_stream_body, IncReqst, OutResp,
@@ -48,9 +47,10 @@ pub async fn auth_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
     let recvd = std::str::from_utf8(&bytes).map_err(|_| error_500())?;
     let parsed: DesUser = serde_json::from_str(recvd).map_err(|_| error_500())?;
 
-    let mut conn = cfg.db_conn.lock().await;
+    let existing_user = User::get_by_google_id(&cfg.db_url, &parsed.google_id)
+        .await
+        .ok();
 
-    let existing_user = db::users::get_user_by_google_id(&mut conn, parsed.google_id.clone()).await;
     if let Some(user) = existing_user {
         let stream =
             stream::once(async move { Ok(Frame::data(Bytes::from(user.user_id.to_string()))) });
@@ -63,7 +63,9 @@ pub async fn auth_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
     }
 
     // If user does not exist, insert a new user
-    let user = db::users::insert_user(&mut conn, parsed.google_id, parsed.email, parsed.name).await;
+    let user = User::create(&cfg.db_url, parsed.google_id, parsed.email, parsed.name)
+        .await
+        .map_err(|_| error_500())?;
 
     let stream =
         stream::once(async move { Ok(Frame::data(Bytes::from(user.user_id.to_string()))) });
