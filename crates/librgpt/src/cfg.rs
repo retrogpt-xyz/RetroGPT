@@ -14,6 +14,7 @@ pub struct Cfg {
     pub system_message: String,
     pub db_conn: Arc<Mutex<AsyncPgConnection>>,
     pub db_url: String,
+    pub msgs_mutex: Arc<Mutex<()>>,
 }
 
 impl Cfg {
@@ -36,6 +37,7 @@ impl Cfg {
         "#.into();
         let db_conn = Arc::new(Mutex::new(crate::db::make_conn().await));
         let db_url = std::env::var("CONTAINER_DATABASE_URL").expect("DATABASE_URL must be set");
+        let msgs_mutex = Arc::new(Mutex::new(()));
 
         Ok(Cfg {
             api_key,
@@ -48,6 +50,7 @@ impl Cfg {
             system_message,
             db_conn,
             db_url,
+            msgs_mutex,
         })
     }
 }

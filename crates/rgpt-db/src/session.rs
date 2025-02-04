@@ -45,10 +45,12 @@ impl Session {
 
     pub async fn create(url: &str, user_id: i32) -> Result<Session, Box<dyn Error>> {
         let expires_at: NaiveDateTime = Utc::now().naive_utc() + Duration::hours(1);
+        let session_token = uuid::Uuid::new_v4().into();
 
         NewSession {
             user_id,
             expires_at,
+            session_token,
         }
         .create(url)
         .await
@@ -81,6 +83,7 @@ impl Session {
 #[diesel(table_name = schema::sessions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 struct NewSession {
+    pub session_token: String,
     pub user_id: i32,
     pub expires_at: NaiveDateTime,
 }

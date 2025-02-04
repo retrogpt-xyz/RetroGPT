@@ -21,6 +21,7 @@ pub async fn api_chat_messages(cfg: &Cfg, req: IncReqst) -> OutResp {
 }
 
 pub async fn api_chat_messages_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
+    let lock = cfg.msgs_mutex.lock().await;
     if req.body().size_hint().upper().unwrap_or(u64::MAX) > cfg.max_req_size {
         return Err(error_400("request body is too large"));
     }
@@ -75,9 +76,12 @@ pub async fn api_chat_messages_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp
         )))
     });
 
+    drop(lock);
+
     Response::builder()
         .status(StatusCode::OK)
         .header(CONTENT_TYPE, "application/json")
+        .header("X-Chat-ID", chat_id.to_string())
         .body(form_stream_body(Box::pin(stream)))
         .map_err(|_| error_500())
 }

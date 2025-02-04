@@ -6,7 +6,7 @@ use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
 use crate::schema;
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Clone)]
 #[diesel(table_name = schema::msgs)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Msg {
