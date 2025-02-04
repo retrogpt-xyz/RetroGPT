@@ -6,10 +6,10 @@ use hyper::{
     body::{Body, Bytes, Frame},
     Response, StatusCode,
 };
+use rgpt_db::{session::Session, user::User};
 
 use crate::{
     cfg::Cfg,
-    db::{self},
     server::{
         error::{error_400, error_500},
         form_stream_body, IncReqst, OutResp,
@@ -34,15 +34,16 @@ pub async fn session_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp>
 
     let recvd = std::str::from_utf8(&bytes).map_err(|_| error_500())?;
 
-    let mut conn = cfg.db_conn.lock().await;
-
-    let user = db::users::get_user_by_id(
-        &mut conn,
+    let user = User::get_by_id(
+        &cfg.db_url,
         recvd.parse().map_err(|_| error_400("bad user id"))?,
     )
-    .await;
+    .await
+    .map_err(|_| error_500())?;
 
-    let session = db::sessions::get_session(&mut conn, &user).await;
+    let session = Session::get_session_for_user(&cfg.db_url, user)
+        .await
+        .map_err(|_| error_500())?;
 
     let stream =
         stream::once(
