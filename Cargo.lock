@@ -1513,6 +1513,7 @@ dependencies = [
  "chrono",
  "diesel",
  "diesel-async",
+ "tokio",
 ]
 
 [[package]]
