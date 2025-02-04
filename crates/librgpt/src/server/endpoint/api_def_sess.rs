@@ -1,4 +1,5 @@
 use hyper::Response;
+use rgpt_db::{session::Session, user::User};
 
 use crate::{
     cfg::Cfg,
@@ -10,9 +11,10 @@ pub async fn api_def_sess(cfg: &Cfg, req: IncReqst) -> OutResp {
 }
 
 pub async fn api_def_sess_inner(cfg: &Cfg, _req: IncReqst) -> Result<OutResp, OutResp> {
-    let mut conn = cfg.db_conn.lock().await;
-    let def = crate::db::users::get_default_user(&mut conn).await;
-    let session = crate::db::sessions::get_session(&mut conn, &def).await;
+    let default_user = User::default(&cfg.db_url).await.unwrap();
+    let session = Session::get_session_for_user(&cfg.db_url, default_user)
+        .await
+        .unwrap();
 
     let stream = futures::stream::once(async move {
         Ok(hyper::body::Frame::data(hyper::body::Bytes::from(
