@@ -115,6 +115,7 @@ button:hover {
 
 .main-window {
   flex: 1;
+  flex-direction: column;
   background: #c0c0c0;
   border: 3px solid #808080;
   height: 400px;
@@ -122,14 +123,33 @@ button:hover {
 }
 
 .header-bar {
-  color: #040404;
-  background: url("./assets/retrologofinal_.png") no-repeat center center;
-  background-size: 50%;
-  height: 150px;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  text-align: left;
+  font-family: "Times New Roman", monospace;
+  font-size: 50px; 
+  font-weight: bold; 
+  color: blue;
+  background: #c0c0c0; 
+  height: 100px;
+}
+
+.header-under {
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  text-align: left;
+  font-family: "Times New Roman", monospace;
+  font-size: 14px; 
+  font-weight: bold; 
+  color: blue;
+  background: #c0c0c0; 
+  height: 15px;
 }
 
 .content-area {
-  padding: 10px;
+  padding: 150px;
 }
 
 .chat-window {

@@ -283,7 +283,8 @@ function App() {
         <div>
           <MenuBar />
         </div>
-        <div className="header-bar"></div>
+        <div className="header-bar">WELCOME TO RETROGPT</div>
+        <div className="header-under">How can I help?</div>
         <div className="content-area">
           <div className="chat-window">
             <div className="chat-messages">
