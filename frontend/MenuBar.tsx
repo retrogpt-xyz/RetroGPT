@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import "./MenuBar.css"; // Import styles
 
-const MenuBar = () => {
-  // State to track which dropdown is open
-  const [openMenu, setOpenMenu] = useState(null);
+ // State to track which dropdown is open
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   // Toggle dropdown visibility
-  const toggleMenu = (menu) => {
+  const toggleMenu = (menu: string) => {
+    console.log("Clicked:", menu);
     setOpenMenu(openMenu === menu ? null : menu);
   };
 
   // Close dropdown when clicking outside
-  const handleClickOutside = (e) => {
-    if (!e.target.closest(".menu-item")) {
+  const handleClickOutside = (e: MouseEvent) => {
+    if (!(e.target as HTMLElement).closest(".menu-item")) {
       setOpenMenu(null);
     }
   };
