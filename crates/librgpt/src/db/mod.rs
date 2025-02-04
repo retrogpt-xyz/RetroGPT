@@ -2,11 +2,10 @@ use std::{env, process::Command};
 
 use diesel_async::{AsyncConnection, AsyncPgConnection};
 
-pub mod dep_chats;
-
-pub mod msgs;
-pub mod sessions;
-pub mod users;
+// pub mod dep_chats;
+// pub mod msgs;
+// pub mod sessions;
+// pub mod users;
 
 pub fn ensure_migrations() {
     let container_db_url = env::var("CONTAINER_DATABASE_URL").unwrap();
