@@ -1,6 +1,5 @@
 /// Main logic for RetroGPT
 pub mod cfg;
-pub mod db;
 pub mod gpt;
 pub mod server;
 pub mod startup;

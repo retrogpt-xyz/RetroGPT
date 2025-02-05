@@ -60,6 +60,7 @@ impl Session {
         url: &str,
         user: user::User,
     ) -> Result<Session, Box<dyn Error>> {
+        // TODO: Sometimes failing unique user id assertion ???
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
         match schema::sessions::table
@@ -72,7 +73,9 @@ impl Session {
                     return Ok(session);
                 }
             }
-            Err(_) => {}
+            Err(e) => {
+                dbg!(e);
+            }
         };
 
         Self::create(url, user.user_id).await.map_err(|e| e.into())
