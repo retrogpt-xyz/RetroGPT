@@ -3,6 +3,7 @@ use std::{env, error::Error, path::PathBuf, sync::Arc};
 use diesel_async::AsyncPgConnection;
 use tokio::sync::Mutex;
 
+#[derive(Clone)]
 pub struct Cfg {
     pub static_dir: PathBuf,
     pub api_key: String,
@@ -15,6 +16,7 @@ pub struct Cfg {
     pub db_conn: Arc<Mutex<AsyncPgConnection>>,
     pub db_url: String,
     pub msgs_mutex: Arc<Mutex<()>>,
+    pub chts_mutex: Arc<Mutex<()>>,
 }
 
 impl Cfg {
@@ -38,6 +40,7 @@ impl Cfg {
         let db_conn = Arc::new(Mutex::new(rgpt_db::make_conn().await));
         let db_url = std::env::var("CONTAINER_DATABASE_URL").expect("DATABASE_URL must be set");
         let msgs_mutex = Arc::new(Mutex::new(()));
+        let chts_mutex = Arc::new(Mutex::new(()));
 
         Ok(Cfg {
             api_key,
@@ -51,6 +54,7 @@ impl Cfg {
             db_conn,
             db_url,
             msgs_mutex,
+            chts_mutex,
         })
     }
 }
