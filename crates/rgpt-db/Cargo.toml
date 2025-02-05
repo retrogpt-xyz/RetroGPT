@@ -1,0 +1,11 @@
+[package]
+name = "rgpt-db"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+diesel = { version = "2.2.6", features = ["chrono", "postgres"] }
+diesel-async = { version = "0.5.2", features = ["postgres"] }
+chrono = "0.4.39"
+tokio = { version = "1.42.0", features = ["full"] }
+uuid = { version = "1.12.1", features = ["v4"] }

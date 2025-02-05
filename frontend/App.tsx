@@ -45,7 +45,7 @@ function App() {
     { id: number; name: string }[]
   >([]);
 
-  const displayLoginOpts = false;
+  const displayLoginOpts = true;
 
   useEffect(() => {
     if (!sessToken) {
@@ -119,7 +119,10 @@ function App() {
         return;
       }
       console.log("got different messages from the server");
-      setDisplayMessages(msgs);
+      let chid = resp.headers.get("X-Chat-ID");
+      if (chid) {
+        if (JSON.parse(chid) == chatId) setDisplayMessages(msgs);
+      }
     });
   };
 

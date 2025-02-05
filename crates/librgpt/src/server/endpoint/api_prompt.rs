@@ -10,14 +10,10 @@ use hyper::{
     body::{Body, Bytes, Frame},
     Response, StatusCode,
 };
+use rgpt_db::{chat::Chat, msg::Msg, session::Session};
 
 use crate::{
     cfg::Cfg,
-    db::{
-        self,
-        chats::{add_to_chat, create_chat, get_chat_by_id},
-        msgs::{create_msg, Msg},
-    },
     server::{
         error::{error_400, error_500},
         IncReqst, OutResp,
@@ -38,11 +34,9 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         None => return Err(error_400("no session token provided")),
     };
 
-    let mut conn = db::make_conn().await;
-    let session = match db::sessions::get_session_by_token(&mut conn, session_token).await {
-        Some(sess) => sess,
-        None => return Err(error_400("invalid session token")),
-    };
+    let session = Session::get_by_token(&cfg.db_url, session_token.to_string())
+        .await
+        .map_err(|_| error_500())?;
 
     let bytes = req
         .collect()
@@ -57,14 +51,16 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         serde_json::from_str(prompt).ok().ok_or_else(error_500)?;
 
     if let Some(chat_id) = recv_json.chatId {
-        let chat = get_chat_by_id(&mut conn, chat_id).await;
+        let chat = Chat::get_by_id(&cfg.db_url, chat_id)
+            .await
+            .map_err(|_| error_500())?;
 
         if session.user_id != chat.user_id {
             return Err(error_400("session user ID does not match chat user ID"));
         }
     }
 
-    let (msg_chain, new_head_id, chat_id) = get_msgs(cfg, recv_json, session.user_id).await;
+    let (msg_chain, chat_id) = get_msgs(cfg, recv_json, session.user_id).await;
 
     let client = async_openai::Client::with_config(
         async_openai::config::OpenAIConfig::new().with_api_key(&cfg.api_key),
@@ -111,22 +107,13 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     let (stream_tx, mut rx) = futures::channel::mpsc::unbounded::<String>();
 
-    let (body_tx, msg) = crate::db::msgs::create_placeholder_msg(
-        &mut conn,
-        "ai",
-        session.user_id,
-        Some(new_head_id),
-    )
-    .await;
-
-    tokio::spawn(async move {
-        let mut resp = String::new();
-        while let Some(x) = rx.next().await {
-            resp.push_str(&x);
-        }
-        println!("{resp}");
-        body_tx.send(resp).unwrap();
-    });
+    // let (body_tx, msg) = crate::db::msgs::create_placeholder_msg(
+    // &mut conn,
+    // "ai",
+    // session.user_id,
+    // Some(new_head_id),
+    // )
+    // .await;
 
     let resp_stream = client
         .chat()
@@ -141,8 +128,35 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         .inspect(move |x| stream_tx.unbounded_send(x.clone()).unwrap())
         .map(|x| Ok(Frame::data(Bytes::from(x))));
 
-    let chat = get_chat_by_id(&mut conn, chat_id).await;
-    let _ = add_to_chat(&mut conn, &chat, &msg).await;
+    // let _ = add_to_chat(&mut conn, &chat, &msg).await;
+    let chat = Chat::get_by_id(&cfg.db_url, chat_id)
+        .await
+        .map_err(|_| error_500())?;
+
+    let url = cfg.db_url.clone();
+    let lock = cfg.msgs_mutex.clone();
+    tokio::spawn(async move {
+        let lock = lock.lock().await;
+        let mut resp = String::new();
+        while let Some(x) = rx.next().await {
+            resp.push_str(&x);
+        }
+        println!("{resp}");
+        let msg = Msg::create(
+            &url,
+            resp.clone(),
+            "ai".into(),
+            session.user_id,
+            chat.head_msg,
+        )
+        .await
+        .unwrap();
+        let chat = Chat::get_by_id(&url, chat.id).await.unwrap();
+        chat.append_to_chat(&url, msg).await.unwrap();
+        println!("appended ai msg to db");
+        drop(lock);
+        // body_tx.send(resp).unwrap();
+    });
 
     Response::builder()
         .status(StatusCode::OK)
@@ -155,31 +169,47 @@ async fn get_msgs(
     cfg: &Cfg,
     recvd: crate::gpt::BackendQueryMsg<'_>,
     user_id: i32,
-) -> (Vec<Msg>, i32, i32) {
-    let mut conn = cfg.db_conn.lock().await;
+) -> (Vec<Msg>, i32) {
     let (chat, msg) = match recvd.chatId {
         Some(id) => {
             println!("I received a chat id reference of {}", id);
-            let chat = get_chat_by_id(&mut conn, id).await;
-            let msg =
-                create_msg(&mut conn, &recvd.text, "user", user_id, Some(chat.head_msg)).await;
-            let chat = add_to_chat(&mut conn, &chat, &msg).await;
+            // let chat = get_chat_by_id(&mut conn, id).await;
+            let chat = Chat::get_by_id(&cfg.db_url, id).await.unwrap();
+            // let msg = create_msg(&mut conn, &recvd.text, "user", user_id, chat.head_msg).await;
+            let msg = Msg::create(
+                &cfg.db_url,
+                recvd.text.into(),
+                "user".into(),
+                user_id,
+                chat.head_msg,
+            )
+            .await
+            .unwrap();
+            // let chat = add_to_chat(&mut conn, &chat, &msg).await;
+            let chat = chat.append_to_chat(&cfg.db_url, msg.clone()).await.unwrap();
+            println!("appended user msg to db");
             (chat, msg)
         }
         None => {
-            let msg = create_msg(&mut conn, &recvd.text, "user", user_id, None).await;
-            let chat = create_chat(&mut conn, &msg).await;
+            let msg = Msg::create(&cfg.db_url, recvd.text.into(), "user".into(), user_id, None)
+                .await
+                .unwrap();
+            let chat = Chat::create(&cfg.db_url, msg.user_id, "Untitled Chat".into())
+                .await
+                .unwrap();
+            let chat = chat.append_to_chat(&cfg.db_url, msg.clone()).await.unwrap();
+            println!("appended user msg to db");
+            // let chat = create_chat(&mut conn, &msg).await;
             println!("Created new DB chat instance with id {}", chat.id);
             (chat, msg)
         }
     };
 
-    let new_head_id = chat.head_msg;
+    // println!("new head id is {}", new_head_id.unwrap());
+    // println!("created measage id is {}", msg.id);
 
-    println!("new head id is {}", new_head_id);
-    println!("created measage id is {}", msg.id);
+    // let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
+    let msg_chain = msg.get_msg_chain(&cfg.db_url).await.unwrap();
 
-    let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
-
-    (msg_chain, new_head_id, chat.id)
+    (msg_chain, chat.id)
 }

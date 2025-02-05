@@ -16,5 +16,5 @@ pub fn startup() {
     // Only really matters in prod. In dev it is
     // assumed that the migrations will be run
     // as you go
-    crate::db::ensure_migrations();
+    rgpt_db::ensure_migrations();
 }
