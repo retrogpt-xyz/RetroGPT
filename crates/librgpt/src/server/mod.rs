@@ -33,7 +33,8 @@ macro_rules! handle_endpoint {
 }
 
 pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Infallible> {
-    println!("{}", req.uri().path());
+    let path = req.uri().path();
+    println!("{path}");
 
     handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
     handle_endpoint!(predicate::serve_static, endpoint::serve_static, cfg, req);
