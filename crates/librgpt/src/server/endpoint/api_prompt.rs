@@ -4,13 +4,15 @@ use async_openai::types::{
     ChatCompletionRequestAssistantMessageArgs, ChatCompletionRequestSystemMessageArgs,
     ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs,
 };
+use diesel::{ExpressionMethods, QueryDsl};
+use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use futures::StreamExt;
 use http_body_util::BodyExt;
 use hyper::{
     body::{Body, Bytes, Frame},
     Response, StatusCode,
 };
-use rgpt_db::{chat::Chat, msg::Msg, session::Session};
+use rgpt_db::{chat::Chat, msg::Msg, schema, session::Session};
 
 use crate::{
     cfg::Cfg,
@@ -107,14 +109,6 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
 
     let (stream_tx, mut rx) = futures::channel::mpsc::unbounded::<String>();
 
-    // let (body_tx, msg) = crate::db::msgs::create_placeholder_msg(
-    // &mut conn,
-    // "ai",
-    // session.user_id,
-    // Some(new_head_id),
-    // )
-    // .await;
-
     let resp_stream = client
         .chat()
         .create_stream(request)
@@ -128,15 +122,17 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         .inspect(move |x| stream_tx.unbounded_send(x.clone()).unwrap())
         .map(|x| Ok(Frame::data(Bytes::from(x))));
 
-    // let _ = add_to_chat(&mut conn, &chat, &msg).await;
     let chat = Chat::get_by_id(&cfg.db_url, chat_id)
         .await
         .map_err(|_| error_500())?;
 
     let url = cfg.db_url.clone();
     let lock = cfg.msgs_mutex.clone();
+    let chats_lock = cfg.chts_mutex.clone();
+    let cfg_clone = cfg.clone();
     tokio::spawn(async move {
-        let lock = lock.lock().await;
+        let cfg = cfg_clone;
+        let ch_msgs_lock = lock.lock().await;
         let mut resp = String::new();
         while let Some(x) = rx.next().await {
             resp.push_str(&x);
@@ -152,10 +148,71 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         .await
         .unwrap();
         let chat = Chat::get_by_id(&url, chat.id).await.unwrap();
-        chat.append_to_chat(&url, msg).await.unwrap();
+        chat.append_to_chat(&url, msg.clone()).await.unwrap();
         println!("appended ai msg to db");
-        drop(lock);
-        // body_tx.send(resp).unwrap();
+        drop(ch_msgs_lock);
+
+        let user_msg = Msg::get_by_id(&url, msg.parent_message_id.unwrap())
+            .await
+            .unwrap();
+        let ai_msg = msg;
+
+        if let Some(_) = user_msg.parent_message_id {
+            // We are not the first message in the chat,
+            // so we don't need to generate the chat name
+            return;
+        }
+
+        let chats_lock = chats_lock.lock().await;
+
+        let prompt = format!(
+            r#"
+           Generate a title for the following chat to be displayed. It must be less than 5 words.
+           Do not respond with anything but the title
+
+           Chat Content:
+           User: {}
+
+           Assistant: {}
+        "#,
+            user_msg.body, ai_msg.body
+        );
+
+        let prompt = ChatCompletionRequestUserMessageArgs::default()
+            .content(prompt)
+            .build()
+            .unwrap()
+            .into();
+
+        let request = CreateChatCompletionRequestArgs::default()
+            .model(&cfg.model_name)
+            .max_tokens(cfg.max_tokens)
+            .messages([prompt])
+            .build()
+            .unwrap();
+
+        let chat_title = client
+            .chat()
+            .create(request)
+            .await
+            .unwrap()
+            .choices
+            .into_iter()
+            .next()
+            .unwrap()
+            .message
+            .content
+            .unwrap();
+
+        println!("{chat_title}");
+
+        diesel::update(schema::chats::table.find(chat.id))
+            .set(schema::chats::name.eq(Some(chat_title)))
+            .execute(&mut AsyncPgConnection::establish(&url).await.unwrap())
+            .await
+            .unwrap();
+
+        drop(chats_lock);
     });
 
     Response::builder()
@@ -194,21 +251,14 @@ async fn get_msgs(
             let msg = Msg::create(&cfg.db_url, recvd.text.into(), "user".into(), user_id, None)
                 .await
                 .unwrap();
-            let chat = Chat::create(&cfg.db_url, msg.user_id, "Untitled Chat".into())
-                .await
-                .unwrap();
+            let chat = Chat::create(&cfg.db_url, msg.user_id, None).await.unwrap();
             let chat = chat.append_to_chat(&cfg.db_url, msg.clone()).await.unwrap();
             println!("appended user msg to db");
-            // let chat = create_chat(&mut conn, &msg).await;
             println!("Created new DB chat instance with id {}", chat.id);
             (chat, msg)
         }
     };
 
-    // println!("new head id is {}", new_head_id.unwrap());
-    // println!("created measage id is {}", msg.id);
-
-    // let msg_chain = crate::db::msgs::get_all_parents(&mut conn, msg).await;
     let msg_chain = msg.get_msg_chain(&cfg.db_url).await.unwrap();
 
     (msg_chain, chat.id)

@@ -47,29 +47,26 @@ function App() {
 
   const displayLoginOpts = true;
 
-  useEffect(() => {
-    if (!sessToken) {
+  const syncUserOwnedChats = async () => {
+    if (!sessToken || !userId) {
       setUserOwnedChats([]);
       return;
     }
-    if (!userId) {
-      setUserOwnedChats([]);
-      return;
-    }
-
-    fetch("/api/chats", {
-      body: userId.toString(),
+    const resp = await fetch("/api/chats", {
       method: "POST",
+      body: userId.toString(),
       headers: {
         "X-Session-Token": sessToken,
         "Content-Type": "application/json",
       },
-    }).then(async (resp) => {
-      if (resp.status != 200) return;
-
-      const body = await resp.json();
-      setUserOwnedChats(body);
     });
+    if (resp.status !== 200) return;
+    const body = await resp.json();
+    setUserOwnedChats(body);
+  };
+
+  useEffect(() => {
+    syncUserOwnedChats();
   }, [userId, sessToken, chatId]);
 
   const getSessionToken = async () => {
@@ -237,6 +234,7 @@ function App() {
     const chatIdHeader = response.headers.get("X-Chat-ID");
 
     if (chatId) setTimeout(() => syncMessages(), 1000);
+    await syncUserOwnedChats();
 
     if (chatIdHeader) {
       setChatId(parseInt(chatIdHeader));

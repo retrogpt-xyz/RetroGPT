@@ -18,6 +18,7 @@ pub async fn api_chats(cfg: &Cfg, req: IncReqst) -> OutResp {
 }
 
 pub async fn api_chats_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
+    let chats_lock = cfg.chts_mutex.lock().await;
     if req.body().size_hint().upper().unwrap_or(u64::MAX) > cfg.max_req_size {
         return Err(error_400("request body is too large"));
     }
@@ -60,7 +61,16 @@ pub async fn api_chats_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRes
             .await
             .map_err(|_| error_500())?
             .into_iter()
-            .map(|chat| json!({"id": chat.id, "name": chat.name}))
+            .map(|chat| {
+                (
+                    chat.id,
+                    match chat.name {
+                        Some(name) => name,
+                        None => "Untitled Chat".into(),
+                    },
+                )
+            })
+            .map(|(id, name)| json!({"id": id, "name": name}))
             .collect::<Vec<_>>()
     };
 
@@ -72,6 +82,8 @@ pub async fn api_chats_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRes
         )))
     });
     let body = form_stream_body(Box::pin(stream));
+
+    drop(chats_lock);
 
     Response::builder()
         .status(StatusCode::OK)
