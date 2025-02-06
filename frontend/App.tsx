@@ -41,11 +41,12 @@ function App() {
   const [sessToken, setSessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
 
+
   const [userOwnedChats, setUserOwnedChats] = useState<
     { id: number; name: string }[]
   >([]);
 
-  const displayLoginOpts = true;
+  const displayLoginOpts = false;
 
   const syncUserOwnedChats = async () => {
     if (!sessToken || !userId) {
@@ -282,7 +283,14 @@ function App() {
       {/* Center window - Chat Interface */}
       <div className="main-window">
         <div>
-          <MenuBar />
+        <MenuBar
+          chatId={chatId}
+          setChatId={setChatId}
+          userOwnedChats={userOwnedChats}
+          setUserOwnedChats={setUserOwnedChats}
+          sessToken={sessToken}
+          login={login} // <-- Pass login function
+/>
         </div>
         <div className="header-bar">WELCOME TO RETROGPT</div>
         <div className="header-under">How can I help?</div>
