@@ -114,12 +114,14 @@ button:hover {
 }
 
 .main-window {
-  flex: 1;
-  flex-direction: column;
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
   background: #c0c0c0;
   border: 3px solid #808080;
-  height: 400px;
+  min-height: 300px;
   box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
+  overflow: hidden; 
 }
 
 .header-bar {
@@ -149,7 +151,8 @@ button:hover {
 }
 
 .content-area {
-  padding: 150px;
+  padding: 50px;
+  padding-bottom: 15px;
 }
 
 .chat-window {
