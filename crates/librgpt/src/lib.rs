@@ -1,4 +1,3 @@
-/// Main logic for RetroGPT
 pub mod cfg;
 pub mod gpt;
 pub mod server;
@@ -11,5 +10,6 @@ pub mod startup;
 pub async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
     // Run startup logic before starting the backend server
     tokio::task::spawn_blocking(startup::startup).await?;
+
     server::run_server().await
 }
