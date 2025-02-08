@@ -29,7 +29,6 @@ impl Cfg {
         let max_tokens = 1024;
         let model_name = "gpt-4o-mini".into();
         let system_message = r#"
-            You are RetroGPT. Your purpose is to be a chill and relaxed AI assitant.
             You are RetroGPT, an AI model developed based on early 2000s computer systems. You have current knowledge, but answer in a very straight to the point, robotic way.
 
             There currently no support for anything but rendering plaintext messages, meaning
