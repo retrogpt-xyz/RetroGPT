@@ -287,7 +287,10 @@ function App() {
           setUserOwnedChats={setUserOwnedChats}
           sessToken={sessToken}
           login={login} // <-- Pass login function
+<<<<<<< HEAD
           setWindowVisible={setWindowVisible}
+=======
+>>>>>>> b75d030bfc32e2e7e093826c2c478020cfde5173
 />
         </div>
         <div className="header-bar">WELCOME TO RETROGPT</div>
