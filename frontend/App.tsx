@@ -17,6 +17,7 @@ interface BackendQueryMessage {
   sessionToken: string;
 }
 
+
 interface User {
   access_token: string;
 }
@@ -29,7 +30,8 @@ interface Profile {
 }
 
 function App() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const [windowVisible, setWindowVisible] = useState(true); 
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -48,29 +50,26 @@ function App() {
 
   const displayLoginOpts = false;
 
-  useEffect(() => {
-    if (!sessToken) {
+  const syncUserOwnedChats = async () => {
+    if (!sessToken || !userId) {
       setUserOwnedChats([]);
       return;
     }
-    if (!userId) {
-      setUserOwnedChats([]);
-      return;
-    }
-
-    fetch("/api/chats", {
-      body: userId.toString(),
+    const resp = await fetch("/api/chats", {
       method: "POST",
+      body: userId.toString(),
       headers: {
         "X-Session-Token": sessToken,
         "Content-Type": "application/json",
       },
-    }).then(async (resp) => {
-      if (resp.status != 200) return;
-
-      const body = await resp.json();
-      setUserOwnedChats(body);
     });
+    if (resp.status !== 200) return;
+    const body = await resp.json();
+    setUserOwnedChats(body);
+  };
+
+  useEffect(() => {
+    syncUserOwnedChats();
   }, [userId, sessToken, chatId]);
 
   const getSessionToken = async () => {
@@ -139,7 +138,7 @@ function App() {
     setDisplayMessages([]);
     setChatId(null);
   }, [sessToken]);
-
+/*
   const handleMouseMove = (event: MouseEvent) => {
     setMousePosition({
       x: event.clientX,
@@ -153,7 +152,7 @@ function App() {
       window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
-
+*/
   useEffect(() => {
     if (userAccessToken) {
       axios
@@ -238,6 +237,7 @@ function App() {
     const chatIdHeader = response.headers.get("X-Chat-ID");
 
     if (chatId) setTimeout(() => syncMessages(), 1000);
+    await syncUserOwnedChats();
 
     if (chatIdHeader) {
       setChatId(parseInt(chatIdHeader));
@@ -269,12 +269,6 @@ function App() {
   return (
     <div className="retro-wrapper">
       {/* Invisible custom cursor */}
-      <div
-        className="custom-cursor-layer"
-        style={{
-          transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
-        }}
-      ></div>
 
       {/* Leftside music player */}
 
@@ -283,6 +277,7 @@ function App() {
       </div>
 
       {/* Center window - Chat Interface */}
+      {windowVisible && ( // <-- Conditionally render main window
       <div className="main-window">
         <div>
         <MenuBar
@@ -292,6 +287,7 @@ function App() {
           setUserOwnedChats={setUserOwnedChats}
           sessToken={sessToken}
           login={login} // <-- Pass login function
+          setWindowVisible={setWindowVisible}
 />
         </div>
         <div className="header-bar">WELCOME TO RETROGPT</div>
@@ -327,7 +323,7 @@ function App() {
           </div>
         </div>
       </div>
-
+      )}
       {/* Right column with app icons */}
       <div className="app-column">
         {displayLoginOpts &&

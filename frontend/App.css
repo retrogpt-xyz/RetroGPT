@@ -4,14 +4,12 @@ body {
   background: #808080;
   background-size: cover;
   color: #000;
-  cursor: none; 
 }
 
 .custom-cursor-layer {
   position: fixed;
   top: 0;
   left: 0;
-  cursor: none;
   width: 20px;
   height: 20px;
   background: url("https://images.rawpixel.com/image_png_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA2L2pvYjk0Ny0xMDQtcC5wbmc.png");
@@ -64,7 +62,6 @@ body {
   color: #fff;
   padding: 10px;
   font-family: "Courier New", Courier, monospace;
-  cursor: pointer;
 }
 
 .controls button:hover {
@@ -90,7 +87,6 @@ button {
   display: block;
   width: 20%;
   padding: 5px;
-  cursor: pointer;
 }
 
 .music-player button:hover {
@@ -98,7 +94,6 @@ button {
 /* } */
 
   font-size: 14px;
-  cursor: pointer;
   box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #404040;
 }
 
@@ -201,7 +196,6 @@ button:hover {
   background: #808080;
   border: 2px outset #c0c0c0;
   color: #fff;
-  cursor: pointer;
   font-family: "Courier New", Courier, monospace;
 }
 
@@ -219,8 +213,8 @@ button:hover {
   background: url("https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png");
   background-size: cover;
   border: 3px solid #808080;
-  width: 100px;
-  height: 100px;
+  width: 75px;
+  height: 75px;
   box-shadow: 2px 2px 0 #fff, -2px -2px 0 #404040;
   display: flex;
   align-items: center;

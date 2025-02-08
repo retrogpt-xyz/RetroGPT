@@ -29,9 +29,7 @@ impl Session {
             .map_err(|e| e.into())
     }
 
-    pub async fn delete(self, url: &str) -> Result<(), Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
+    pub async fn delete(self, conn: &mut AsyncPgConnection) -> Result<(), Box<dyn Error>> {
         diesel::delete(schema::sessions::table.find(self.session_token))
             .execute(conn)
             .await
@@ -71,6 +69,11 @@ impl Session {
             Ok(session) => {
                 if session.validate() {
                     return Ok(session);
+                } else {
+                    session
+                        .delete(conn)
+                        .await
+                        .map_err(Into::<Box<dyn Error>>::into)?
                 }
             }
             Err(e) => {

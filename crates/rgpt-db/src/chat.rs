@@ -17,7 +17,7 @@ pub struct Chat {
     pub user_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
-    pub name: String,
+    pub name: Option<String>,
 }
 
 impl Chat {
@@ -45,7 +45,11 @@ impl Chat {
             .map_err(|e| e.into())
     }
 
-    pub async fn create(url: &str, user_id: i32, name: String) -> Result<Chat, Box<dyn Error>> {
+    pub async fn create(
+        url: &str,
+        user_id: i32,
+        name: Option<String>,
+    ) -> Result<Chat, Box<dyn Error>> {
         NewChat { user_id, name }.create(url).await
     }
 }
@@ -55,7 +59,7 @@ impl Chat {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 struct NewChat {
     pub user_id: i32,
-    pub name: String,
+    pub name: Option<String>,
 }
 
 impl NewChat {
