@@ -1,0 +1,26 @@
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
+
+use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, StaticService};
+use rgpt_cfg::Context;
+use tokio::net::TcpListener;
+
+pub mod serve_static;
+
+use serve_static::StaticAssetService;
+
+pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Error>> {
+    let addr = SocketAddr::from(([0, 0, 0, 0], cx.config.port));
+    let listener = TcpListener::bind(addr).await?;
+
+    ServiceBuilder::new()
+        .with_dyn_route(static_asset_route(cx.stc_dir()))
+        .with_fallback(StaticService::new("404 not found"))
+        .serve(listener)
+        .await?;
+
+    Ok(())
+}
+
+fn static_asset_route(path: PathBuf) -> DynRoute {
+    Route::from_parts(StaticDirRouter::new(&path), StaticAssetService::new(&path)).make_dyn()
+}

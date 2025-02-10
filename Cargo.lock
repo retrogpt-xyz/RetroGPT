@@ -990,7 +990,9 @@ dependencies = [
  "libserver",
  "mime_guess",
  "reqwest",
+ "rgpt-cfg",
  "rgpt-db",
+ "rgpt-server",
  "serde",
  "serde_json",
  "tokio",
@@ -1522,6 +1524,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rgpt-cfg"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "rgpt-db",
+]
+
+[[package]]
 name = "rgpt-db"
 version = "0.1.0"
 dependencies = [
@@ -1530,6 +1540,21 @@ dependencies = [
  "diesel-async",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "rgpt-server"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "hyper",
+ "libserver",
+ "mime_guess",
+ "rgpt-cfg",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tower",
 ]
 
 [[package]]

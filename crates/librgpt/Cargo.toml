@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 rgpt-db.workspace = true
+rgpt-server.workspace = true
+rgpt-cfg.workspace = true
 libserver.workspace = true
 
 async-openai = "0.27.2"

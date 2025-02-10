@@ -4,17 +4,15 @@ pub mod predicate;
 
 use crate::cfg::Cfg;
 
+use std::convert::Infallible;
 use std::error::Error;
 use std::io;
 use std::sync::Arc;
-use std::{convert::Infallible, net::SocketAddr};
 
 use futures::Stream;
 use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper::{body::Bytes, Request, Response};
-use libserver::{body_stream, once_body};
-use tokio::net::TcpListener;
 
 pub type IncReqst = Request<hyper::body::Incoming>;
 pub type OutResp = Response<
@@ -37,8 +35,7 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
     println!("{path}");
 
     handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
-
-    handle_endpoint!(predicate::serve_static, endpoint::serve_static, cfg, req);
+    // handle_endpoint!(predicate::serve_static, endpoint::serve_static, cfg, req);
     handle_endpoint!(predicate::auth, endpoint::auth, cfg, req);
     handle_endpoint!(predicate::session, endpoint::session, cfg, req);
     handle_endpoint!(predicate::api_def_sess, endpoint::api_def_sess, cfg, req);
@@ -66,22 +63,6 @@ where
 }
 
 pub async fn run_server() -> Result<(), Box<dyn Error>> {
-    let fallback =
-        tower::service_fn(|_| async { Ok(Response::new(body_stream(once_body("404 not found")))) });
-
-    let service = tower::service_fn(super::s);
-
-    println!("listening");
-
-    let global_cfg = Arc::new(Cfg::get().await?);
-    let addr = SocketAddr::from(([0, 0, 0, 0], global_cfg.port));
-    let listener = TcpListener::bind(addr).await?;
-
-    libserver::ServiceBuilder::new()
-        .with_static_dir("static/", service)
-        .with_fallback(fallback)
-        .serve(listener)
-        .await?;
-
-    Ok(())
+    let cx = rgpt_cfg::Context::new().await?.into();
+    rgpt_server::run_server(cx).await
 }

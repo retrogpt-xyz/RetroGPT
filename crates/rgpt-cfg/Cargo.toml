@@ -1,0 +1,9 @@
+[package]
+name = "rgpt-cfg"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rgpt-db.workspace = true
+
+reqwest = { version = "0.12.11", features = ["json"] }

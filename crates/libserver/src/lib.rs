@@ -18,10 +18,13 @@ pub type BodyInner = io::Result<Frame<Bytes>>;
 pub type BoxedBodyStream = Box<dyn Stream<Item = BodyInner> + Send + Unpin + 'static>;
 
 pub type ServiceResponse = Response<StreamBody<BoxedBodyStream>>;
-pub type ServiceError = Arc<dyn std::error::Error + Send + Sync>;
+pub type ServiceError = Box<dyn std::error::Error + Send + Sync>;
+pub type ServiceBoxFuture =
+    Pin<Box<dyn Future<Output = Result<ServiceResponse, ServiceError>> + Send + 'static>>;
 
 pub type DynRouter = Arc<dyn Router>;
 pub type DynService = BoxCloneSyncService<Request, ServiceResponse, ServiceError>;
+pub type DynRoute = Route<DynRouter, DynService>;
 
 pub trait Router: Send + Sync + 'static {
     fn matches(&self, req: &Request) -> bool;
@@ -40,14 +43,18 @@ pub struct StaticDirRouter {
     dir: PathBuf,
 }
 
+impl StaticDirRouter {
+    pub fn new(dir: impl Into<PathBuf>) -> StaticDirRouter {
+        StaticDirRouter { dir: dir.into() }
+    }
+}
+
 impl Router for StaticDirRouter {
     fn matches(&self, req: &Request) -> bool {
         let mut path = self.dir.join(&req.uri().path()[1..]);
-
         if path.is_dir() {
-            path = path.join("index.html");
+            path.push("index.html");
         }
-
         path.is_file()
     }
 }
@@ -83,14 +90,14 @@ impl<
 where
     S::Future: Send + 'static,
 {
-    pub fn make_dyn(self) -> Route<DynRouter, DynService> {
+    pub fn make_dyn(self) -> DynRoute {
         self.map_router(|r| Arc::new(r) as DynRouter)
             .map_service(|s| BoxCloneSyncService::new(s))
     }
 }
 
 pub struct ServiceBuilder {
-    routes: Vec<Route<DynRouter, DynService>>,
+    routes: Vec<DynRoute>,
 }
 
 impl ServiceBuilder {
@@ -98,7 +105,7 @@ impl ServiceBuilder {
         ServiceBuilder { routes: vec![] }
     }
 
-    pub fn with_route<R, S>(mut self, route: Route<R, S>) -> ServiceBuilder
+    pub fn with_route<R, S>(self, route: Route<R, S>) -> ServiceBuilder
     where
         R: Router,
         S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
@@ -108,7 +115,11 @@ impl ServiceBuilder {
             + 'static,
         S::Future: Send + 'static,
     {
-        self.routes.push(route.make_dyn());
+        self.with_dyn_route(route.make_dyn())
+    }
+
+    pub fn with_dyn_route(mut self, route: DynRoute) -> ServiceBuilder {
+        self.routes.push(route);
         self
     }
 
@@ -145,7 +156,7 @@ impl ServiceBuilder {
 
 #[derive(Clone)]
 pub struct Service {
-    routes: Vec<Route<DynRouter, DynService>>,
+    routes: Vec<DynRoute>,
     fallback: DynService,
 }
 
@@ -192,6 +203,10 @@ impl TowerService<Request> for Service {
     }
 }
 
+pub fn static_body(body: impl Into<Bytes> + Send + 'static) -> StreamBody<BoxedBodyStream> {
+    body_stream(once_body(body))
+}
+
 pub fn once_body(body: impl Into<Bytes>) -> impl Stream<Item = BodyInner> {
     futures::stream::once(async { Ok(Frame::data(body.into())) })
 }
@@ -201,4 +216,37 @@ where
     S: Stream<Item = BodyInner> + Send + 'static,
 {
     StreamBody::new(Box::new(Box::pin(stream)))
+}
+
+#[derive(Clone)]
+pub struct StaticService<T> {
+    body: T,
+}
+
+impl<T> StaticService<T> {
+    pub fn new(body: T) -> Self {
+        Self { body }
+    }
+}
+
+impl<T: Into<Bytes> + Clone + Send + 'static> TowerService<Request> for StaticService<T> {
+    type Response = ServiceResponse;
+    type Error = ServiceError;
+    type Future = ServiceBoxFuture;
+
+    fn poll_ready(
+        &mut self,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, _req: Request) -> Self::Future {
+        let resp = Response::new(static_body(self.body.clone()));
+        Box::pin(async { Ok(resp) })
+    }
+}
+
+pub fn static_service<T>(body: T) -> StaticService<T> {
+    StaticService { body }
 }
