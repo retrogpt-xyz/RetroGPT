@@ -9,11 +9,11 @@ pub mod serve_static;
 use serve_static::StaticAssetService;
 
 pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Error>> {
-    let addr = SocketAddr::from(([0, 0, 0, 0], cx.config.port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], cx.port()));
     let listener = TcpListener::bind(addr).await?;
 
     ServiceBuilder::new()
-        .with_dyn_route(static_asset_route(cx.stc_dir()))
+        .with_dyn_route(static_asset_route(cx.static_dir()))
         .with_fallback(StaticService::new("404 not found"))
         .serve(listener)
         .await?;

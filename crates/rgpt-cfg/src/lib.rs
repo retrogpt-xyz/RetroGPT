@@ -15,8 +15,12 @@ impl Context {
         Ok(Context { state, config })
     }
 
-    pub fn stc_dir(&self) -> PathBuf {
+    pub fn static_dir(&self) -> PathBuf {
         self.config.static_dir.clone()
+    }
+
+    pub fn port(&self) -> u16 {
+        self.config.port
     }
 }
 
