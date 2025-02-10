@@ -12,8 +12,8 @@ use std::{convert::Infallible, net::SocketAddr};
 use futures::Stream;
 use http_body_util::StreamBody;
 use hyper::body::Frame;
-use hyper::{body::Bytes, server::conn::http1, service::service_fn, Request, Response};
-use hyper_util::rt::TokioIo;
+use hyper::{body::Bytes, Request, Response};
+use libserver::{body_stream, once_body};
 use tokio::net::TcpListener;
 
 pub type IncReqst = Request<hyper::body::Incoming>;
@@ -37,6 +37,7 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
     println!("{path}");
 
     handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
+
     handle_endpoint!(predicate::serve_static, endpoint::serve_static, cfg, req);
     handle_endpoint!(predicate::auth, endpoint::auth, cfg, req);
     handle_endpoint!(predicate::session, endpoint::session, cfg, req);
@@ -52,7 +53,7 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
     Ok(error::error_400("request did not match any endpoints"))
 }
 
-fn form_stream_body<S>(
+pub fn form_stream_body<S>(
     stream: S,
 ) -> StreamBody<Box<dyn Send + Unpin + 'static + Stream<Item = Result<Frame<Bytes>, io::Error>>>>
 where
@@ -65,25 +66,22 @@ where
 }
 
 pub async fn run_server() -> Result<(), Box<dyn Error>> {
-    let global_cfg = Arc::new(Cfg::get().await?);
+    let fallback =
+        tower::service_fn(|_| async { Ok(Response::new(body_stream(once_body("404 not found")))) });
 
+    let service = tower::service_fn(super::s);
+
+    println!("listening");
+
+    let global_cfg = Arc::new(Cfg::get().await?);
     let addr = SocketAddr::from(([0, 0, 0, 0], global_cfg.port));
     let listener = TcpListener::bind(addr).await?;
-    println!("Listening on: {}", addr);
 
-    loop {
-        let (stream, _addr) = listener.accept().await?;
-        let io = TokioIo::new(stream);
+    libserver::ServiceBuilder::new()
+        .with_static_dir("static/", service)
+        .with_fallback(fallback)
+        .serve(listener)
+        .await?;
 
-        let local_cfg = Arc::clone(&global_cfg);
-
-        tokio::task::spawn(async move {
-            http1::Builder::new()
-                .serve_connection(
-                    io,
-                    service_fn(move |req| handle_request(Arc::clone(&local_cfg), req)),
-                )
-                .await
-        });
-    }
+    Ok(())
 }

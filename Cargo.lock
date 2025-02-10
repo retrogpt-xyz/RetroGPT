@@ -987,6 +987,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
+ "libserver",
  "mime_guess",
  "reqwest",
  "rgpt-db",
@@ -994,6 +995,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-util",
+ "tower",
  "uuid",
 ]
 

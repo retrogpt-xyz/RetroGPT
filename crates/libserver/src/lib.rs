@@ -1,21 +1,58 @@
-use std::{future::Future, pin::Pin, sync::Arc};
+use std::{future::Future, io, path::PathBuf, pin::Pin, sync::Arc};
 
 use bytes::Bytes;
+use futures::Stream;
 use http_body_util::StreamBody;
 use hyper::{
     body::{Frame, Incoming},
     server::conn::http1,
+    Response,
 };
 use hyper_util::{rt::TokioIo, service::TowerToHyperService};
 use tokio::net::TcpListener;
 use tower::{util::BoxCloneSyncService, Service as TowerService};
 
-type Request = hyper::Request<Incoming>;
+pub type Request = hyper::Request<Incoming>;
+
+pub type BodyInner = io::Result<Frame<Bytes>>;
+pub type BoxedBodyStream = Box<dyn Stream<Item = BodyInner> + Send + Unpin + 'static>;
+
+pub type ServiceResponse = Response<StreamBody<BoxedBodyStream>>;
+pub type ServiceError = Arc<dyn std::error::Error + Send + Sync>;
+
+pub type DynRouter = Arc<dyn Router>;
+pub type DynService = BoxCloneSyncService<Request, ServiceResponse, ServiceError>;
 
 pub trait Router: Send + Sync + 'static {
     fn matches(&self, req: &Request) -> bool;
 }
 
+impl<T> Router for T
+where
+    T: Fn(&Request) -> bool + Send + Sync + 'static,
+{
+    fn matches(&self, req: &Request) -> bool {
+        self(req)
+    }
+}
+
+pub struct StaticDirRouter {
+    dir: PathBuf,
+}
+
+impl Router for StaticDirRouter {
+    fn matches(&self, req: &Request) -> bool {
+        let mut path = self.dir.join(&req.uri().path()[1..]);
+
+        if path.is_dir() {
+            path = path.join("index.html");
+        }
+
+        path.is_file()
+    }
+}
+
+#[derive(Clone)]
 pub struct Route<R, S> {
     router: R,
     service: S,
@@ -34,28 +71,26 @@ impl<R, S> Route<R, S> {
         Route::from_parts(self.router, f(self.service))
     }
 }
-impl<R: Router, S: TowerService<Request> + Send + Sync + Clone + 'static> Route<R, S>
+
+impl<
+        R: Router,
+        S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
+            + Send
+            + Sync
+            + Clone
+            + 'static,
+    > Route<R, S>
 where
     S::Future: Send + 'static,
 {
-    pub fn make_dyn(
-        self,
-    ) -> Route<Arc<dyn Router>, BoxCloneSyncService<Request, S::Response, S::Error>> {
-        self.map_router(|r| Arc::new(r) as Arc<dyn Router>)
+    pub fn make_dyn(self) -> Route<DynRouter, DynService> {
+        self.map_router(|r| Arc::new(r) as DynRouter)
             .map_service(|s| BoxCloneSyncService::new(s))
     }
 }
 
-pub type ServiceResponse = hyper::Response<
-    StreamBody<
-        Box<dyn Unpin + Send + futures::Stream<Item = Result<Frame<Bytes>, std::io::Error>>>,
-    >,
->;
-pub type ServiceError = Arc<dyn std::error::Error + Send + Sync>;
-
 pub struct ServiceBuilder {
-    routes:
-        Vec<Route<Arc<dyn Router>, BoxCloneSyncService<Request, ServiceResponse, ServiceError>>>,
+    routes: Vec<Route<DynRouter, DynService>>,
 }
 
 impl ServiceBuilder {
@@ -63,42 +98,62 @@ impl ServiceBuilder {
         ServiceBuilder { routes: vec![] }
     }
 
-    pub fn with_route(
-        mut self,
-        route: Route<Arc<dyn Router>, BoxCloneSyncService<Request, ServiceResponse, ServiceError>>,
-    ) -> ServiceBuilder {
-        self.routes.push(route);
+    pub fn with_route<R, S>(mut self, route: Route<R, S>) -> ServiceBuilder
+    where
+        R: Router,
+        S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
+            + Clone
+            + Send
+            + Sync
+            + 'static,
+        S::Future: Send + 'static,
+    {
+        self.routes.push(route.make_dyn());
         self
     }
 
-    pub fn with_fallback(
-        self,
-        fallback: BoxCloneSyncService<Request, ServiceResponse, ServiceError>,
-    ) -> Service {
+    pub fn with_fallback<S>(self, fallback: S) -> Service
+    where
+        S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
+            + Clone
+            + Send
+            + Sync
+            + 'static,
+        S::Future: Send + 'static,
+    {
         Service {
-            routes: self
-                .routes
-                .into_iter()
-                .map(|r| r.map_service(TowerToHyperService::new))
-                .collect(),
-            fallback: TowerToHyperService::new(fallback),
+            routes: self.routes,
+            fallback: BoxCloneSyncService::new(fallback),
         }
+    }
+
+    pub fn with_static_dir<S>(self, dir: impl Into<PathBuf>, service: S) -> Self
+    where
+        S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
+            + Send
+            + Sync
+            + Clone
+            + 'static,
+        S::Future: Send + 'static,
+    {
+        self.with_route(Route::from_parts(
+            StaticDirRouter { dir: dir.into() },
+            service,
+        ))
     }
 }
 
+#[derive(Clone)]
 pub struct Service {
-    routes: Vec<
-        Route<
-            Arc<dyn Router>,
-            TowerToHyperService<BoxCloneSyncService<Request, ServiceResponse, ServiceError>>,
-        >,
-    >,
-    fallback: TowerToHyperService<BoxCloneSyncService<Request, ServiceResponse, ServiceError>>,
+    routes: Vec<Route<DynRouter, DynService>>,
+    fallback: DynService,
 }
 
 impl Service {
     pub async fn serve(self, listener: TcpListener) -> Result<(), std::io::Error> {
-        let service = Arc::new(self);
+        let adapter = TowerToHyperService::new(self);
+        let service = Arc::new(adapter);
+
         loop {
             let service = service.clone();
             let stream = TokioIo::new(listener.accept().await?.0);
@@ -113,16 +168,37 @@ impl Service {
     }
 }
 
-impl hyper::service::Service<Request> for Service {
+impl TowerService<Request> for Service {
     type Response = ServiceResponse;
     type Error = ServiceError;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
-    fn call(&self, req: Request) -> Self::Future {
-        for route in self.routes.iter() {
-            if route.router.matches(&req) {
-                return Box::pin(route.service.call(req));
-            }
-        }
-        Box::pin(self.fallback.call(req))
+
+    fn poll_ready(
+        &mut self,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
     }
+
+    fn call(&mut self, req: Request) -> Self::Future {
+        Box::pin(
+            self.routes
+                .iter_mut()
+                .find(|r| r.router.matches(&req))
+                .map(|r| &mut r.service)
+                .unwrap_or(&mut self.fallback)
+                .call(req),
+        )
+    }
+}
+
+pub fn once_body(body: impl Into<Bytes>) -> impl Stream<Item = BodyInner> {
+    futures::stream::once(async { Ok(Frame::data(body.into())) })
+}
+
+pub fn body_stream<S>(stream: S) -> StreamBody<BoxedBodyStream>
+where
+    S: Stream<Item = BodyInner> + Send + 'static,
+{
+    StreamBody::new(Box::new(Box::pin(stream)))
 }

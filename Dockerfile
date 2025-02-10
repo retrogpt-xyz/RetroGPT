@@ -6,7 +6,7 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 
 # Create dummy crates structure to cache dependencies
-RUN mkdir -p crates/rgpt crates/librgpt
+RUN mkdir -p crates/rgpt crates/librgpt crates/libserver crates/rgpt-db
 COPY crates/rgpt/Cargo.toml crates/rgpt/
 COPY crates/librgpt/Cargo.toml crates/librgpt/
 
@@ -15,9 +15,12 @@ RUN mkdir -p crates/rgpt/src && \
   mkdir -p crates/librgpt/src && \
   echo "pub fn dummy() {}" > crates/librgpt/src/lib.rs && \
   mkdir -p crates/rgpt-db/src && \
-  echo "pub fn dummy() {}" > crates/rgpt-db/src/lib.rs
+  echo "pub fn dummy() {}" > crates/rgpt-db/src/lib.rs && \
+  mkdir -p crates/libserver/src && \
+  echo "pub fn dummy() {}" > crates/libserver/src/lib.rs
 
 COPY crates/rgpt-db/Cargo.toml crates/rgpt-db/Cargo.toml
+COPY crates/libserver/Cargo.toml crates/libserver/Cargo.toml
 
 RUN cargo build --release
 
@@ -26,9 +29,11 @@ RUN rm -rf crates/*/src
 COPY crates/rgpt/src crates/rgpt/src
 COPY crates/librgpt/src crates/librgpt/src
 COPY crates/rgpt-db/src crates/rgpt-db/src
+COPY crates/libserver/src crates/libserver/src
 
 RUN touch crates/rgpt/src/main.rs && \
   touch crates/librgpt/src/lib.rs && \
+  touch crates/libserver/src/lib.rs && \
   touch crates/rgpt-db/src/lib.rs 
 
 RUN cargo build --release

@@ -19,8 +19,7 @@ pub async fn serve_static(cfg: &Cfg, req: IncReqst) -> OutResp {
 }
 
 pub async fn serve_static_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutResp> {
-    let join = cfg.static_dir.join(&req.uri().path()[1..]);
-    let mut path = join;
+    let mut path = cfg.static_dir.join(&req.uri().path()[1..]);
     if path.is_dir() {
         path = path.join("index.html");
     }
