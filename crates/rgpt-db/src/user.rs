@@ -1,10 +1,10 @@
-use std::error::Error;
+use std::{error::Error, sync::Arc};
 
 use chrono::NaiveDateTime;
 use diesel::{ExpressionMethods, Insertable, QueryDsl, Queryable, Selectable, SelectableHelper};
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{chat, schema};
+use crate::{chat, schema, Database};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::users)]
@@ -66,12 +66,20 @@ impl User {
             .map_err(|e| e.into())
     }
 
+    #[deprecated]
     pub async fn default(url: &str) -> Result<User, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
         schema::users::table
             .find(1)
             .first(conn)
+            .await
+            .map_err(|e| e.into())
+    }
+
+    pub async fn n_default(db: Arc<Database>) -> Result<User, Box<dyn Error>> {
+        let query = schema::users::table.find(1).limit(1);
+        crate::RunQueryDsl::get_result::<User>(query, db)
             .await
             .map_err(|e| e.into())
     }

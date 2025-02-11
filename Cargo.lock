@@ -1551,6 +1551,7 @@ dependencies = [
  "libserver",
  "mime_guess",
  "rgpt-cfg",
+ "rgpt-db",
  "serde_json",
  "tokio",
  "tokio-util",

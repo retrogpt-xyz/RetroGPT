@@ -59,6 +59,22 @@ impl Router for StaticDirRouter {
     }
 }
 
+pub struct PathEqRouter {
+    path: String,
+}
+
+impl PathEqRouter {
+    pub fn new(path: impl Into<String>) -> PathEqRouter {
+        PathEqRouter { path : path.into()}
+    }
+}
+
+impl Router for PathEqRouter {
+    fn matches(&self, req: &Request) -> bool {
+        req.uri().path() == self.path
+    }
+}
+
 #[derive(Clone)]
 pub struct Route<R, S> {
     router: R,

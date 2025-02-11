@@ -22,6 +22,10 @@ impl Context {
     pub fn port(&self) -> u16 {
         self.config.port
     }
+
+    pub fn db(&self) -> Arc<Database> {
+        self.state.db.clone()
+    }
 }
 
 /// Shared state between request handler threads

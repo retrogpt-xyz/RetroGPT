@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, sync::Arc};
 
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{
@@ -6,7 +6,11 @@ use diesel::{
 };
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{schema, user};
+use crate::{
+    schema,
+    user::{self, User},
+    Database,
+};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::sessions)]
@@ -29,6 +33,7 @@ impl Session {
             .map_err(|e| e.into())
     }
 
+    #[deprecated]
     pub async fn delete(self, conn: &mut AsyncPgConnection) -> Result<(), Box<dyn Error>> {
         diesel::delete(schema::sessions::table.find(self.session_token))
             .execute(conn)
@@ -37,10 +42,17 @@ impl Session {
             .map_err(|e| e.into())
     }
 
+    pub async fn n_delete(self, db: Arc<Database>) -> Result<(), Box<dyn Error>> {
+        let query = diesel::delete(schema::sessions::table.find(self.session_token));
+        crate::RunQueryDsl::execute(query, db).await?;
+        Ok(())
+    }
+
     pub fn validate(&self) -> bool {
         expires_at_is_valid(&self.expires_at)
     }
 
+    #[deprecated]
     pub async fn create(url: &str, user_id: i32) -> Result<Session, Box<dyn Error>> {
         let expires_at: NaiveDateTime = Utc::now().naive_utc() + Duration::hours(1);
         let session_token = uuid::Uuid::new_v4().into();
@@ -54,6 +66,20 @@ impl Session {
         .await
     }
 
+    pub async fn n_create(db: Arc<Database>, user_id: i32) -> Result<Session, Box<dyn Error>> {
+        let expires_at: NaiveDateTime = Utc::now().naive_utc() + Duration::hours(1);
+        let session_token = uuid::Uuid::new_v4().into();
+
+        NewSession {
+            user_id,
+            expires_at,
+            session_token,
+        }
+        .n_create(db)
+        .await
+    }
+
+    #[deprecated]
     pub async fn get_session_for_user(
         url: &str,
         user: user::User,
@@ -82,6 +108,22 @@ impl Session {
 
         Self::create(url, user.user_id).await.map_err(|e| e.into())
     }
+
+    pub async fn n_get_for_user(db: Arc<Database>, user: &User) -> Result<Session, Box<dyn Error>> {
+        let query = schema::sessions::table
+            .filter(schema::sessions::user_id.eq(user.user_id))
+            .limit(1);
+
+        if let Ok(session) = crate::RunQueryDsl::get_result::<Session>(query, db.clone()).await {
+            if session.validate() {
+                return Ok(session);
+            } else {
+                session.n_delete(db.clone()).await?
+            }
+        }
+
+        Session::n_create(db, user.user_id).await
+    }
 }
 
 #[derive(Insertable)]
@@ -94,6 +136,7 @@ struct NewSession {
 }
 
 impl NewSession {
+    #[deprecated]
     async fn create(self, url: &str) -> Result<Session, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -103,6 +146,14 @@ impl NewSession {
             .get_result(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    pub async fn n_create(self, db: Arc<Database>) -> Result<Session, Box<dyn Error>> {
+        let query = diesel::insert_into(schema::sessions::table)
+            .values(self)
+            .returning(Session::as_returning());
+        let session = crate::RunQueryDsl::get_result(query, db).await?;
+        Ok(session)
     }
 }
 
