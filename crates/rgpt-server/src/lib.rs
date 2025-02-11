@@ -14,7 +14,7 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
 
     ServiceBuilder::new()
         .with_dyn_route(static_asset_route(cx.static_dir()))
-        .with_fallback(StaticService::new("404 not found"))
+        .with_fallback(StaticService::new("404 not found", StatusCode::NOT_FOUND))
         .serve(listener)
         .await?;
 

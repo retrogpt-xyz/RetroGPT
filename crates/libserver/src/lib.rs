@@ -6,7 +6,7 @@ use http_body_util::StreamBody;
 use hyper::{
     body::{Frame, Incoming},
     server::conn::http1,
-    Response,
+    Response, StatusCode,
 };
 use hyper_util::{rt::TokioIo, service::TowerToHyperService};
 use tokio::net::TcpListener;
@@ -221,11 +221,12 @@ where
 #[derive(Clone)]
 pub struct StaticService<T> {
     body: T,
+    status: StatusCode,
 }
 
 impl<T> StaticService<T> {
-    pub fn new(body: T) -> Self {
-        Self { body }
+    pub fn new(body: T, status: StatusCode) -> Self {
+        Self { body, status }
     }
 }
 
@@ -242,11 +243,8 @@ impl<T: Into<Bytes> + Clone + Send + 'static> TowerService<Request> for StaticSe
     }
 
     fn call(&mut self, _req: Request) -> Self::Future {
-        let resp = Response::new(static_body(self.body.clone()));
+        let mut resp = Response::new(static_body(self.body.clone()));
+        *resp.status_mut() = self.status;
         Box::pin(async { Ok(resp) })
     }
-}
-
-pub fn static_service<T>(body: T) -> StaticService<T> {
-    StaticService { body }
 }
