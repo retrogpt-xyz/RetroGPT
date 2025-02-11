@@ -17,7 +17,6 @@ interface BackendQueryMessage {
   sessionToken: string;
 }
 
-
 interface User {
   access_token: string;
 }
@@ -30,8 +29,7 @@ interface Profile {
 }
 
 function App() {
-
-  const [windowVisible, setWindowVisible] = useState(true); 
+  const [windowVisible, setWindowVisible] = useState(true);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -42,7 +40,6 @@ function App() {
 
   const [sessToken, setSessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
-
 
   const [userOwnedChats, setUserOwnedChats] = useState<
     { id: number; name: string }[]
@@ -138,7 +135,7 @@ function App() {
     setDisplayMessages([]);
     setChatId(null);
   }, [sessToken]);
-/*
+  /*
   const handleMouseMove = (event: MouseEvent) => {
     setMousePosition({
       x: event.clientX,
@@ -278,54 +275,51 @@ function App() {
 
       {/* Center window - Chat Interface */}
       {windowVisible && ( // <-- Conditionally render main window
-      <div className="main-window">
-        <div>
-        <MenuBar
-          chatId={chatId}
-          setChatId={setChatId}
-          userOwnedChats={userOwnedChats}
-          setUserOwnedChats={setUserOwnedChats}
-          sessToken={sessToken}
-          login={login} // <-- Pass login function
-<<<<<<< HEAD
-          setWindowVisible={setWindowVisible}
-=======
->>>>>>> b75d030bfc32e2e7e093826c2c478020cfde5173
-/>
-        </div>
-        <div className="header-bar">WELCOME TO RETROGPT</div>
-        <div className="header-under">How can I help?</div>
-        <div className="content-area">
-          <div className="chat-window">
-            <div className="chat-messages">
-              {displayMessages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`chat-message ${
-                    message.sender === "user" ? "user-message" : "ai-message"
-                  }`}
-                >
-                  {message.text}
-                </div>
-              ))}
-            </div>
-            <div className="chat-input">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Type your message..."
-              />
-              <button onClick={handleSendMessage}>Send</button>
+        <div className="main-window">
+          <div>
+            <MenuBar
+              chatId={chatId}
+              setChatId={setChatId}
+              userOwnedChats={userOwnedChats}
+              setUserOwnedChats={setUserOwnedChats}
+              sessToken={sessToken}
+              login={login} // <-- Pass login function
+              setWindowVisible={setWindowVisible}
+            />
+          </div>
+          <div className="header-bar">WELCOME TO RETROGPT</div>
+          <div className="header-under">How can I help?</div>
+          <div className="content-area">
+            <div className="chat-window">
+              <div className="chat-messages">
+                {displayMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`chat-message ${
+                      message.sender === "user" ? "user-message" : "ai-message"
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                ))}
+              </div>
+              <div className="chat-input">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Type your message..."
+                />
+                <button onClick={handleSendMessage}>Send</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
       {/* Right column with app icons */}
       <div className="app-column">
