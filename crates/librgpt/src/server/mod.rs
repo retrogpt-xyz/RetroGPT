@@ -36,7 +36,6 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
 
     handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
     handle_endpoint!(predicate::auth, endpoint::auth, cfg, req);
-    handle_endpoint!(predicate::session, endpoint::session, cfg, req);
     handle_endpoint!(predicate::api_chats, endpoint::api_chats, cfg, req);
     handle_endpoint!(
         predicate::api_chat_messages,
