@@ -40,6 +40,7 @@ impl User {
         Ok(user)
     }
 
+    #[deprecated]
     pub async fn get_by_google_id(url: &str, google_id: &str) -> Result<User, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -51,6 +52,16 @@ impl User {
             .map_err(|e| e.into())
     }
 
+    pub async fn n_get_by_google_id(
+        db: Arc<Database>,
+        google_id: &str,
+    ) -> Result<User, libserver::ServiceError> {
+        let query = schema::users::table.filter(schema::users::google_id.eq(google_id.to_owned()));
+        let user = crate::RunQueryDsl::get_result::<User>(query, db).await?;
+        Ok(user)
+    }
+
+    #[deprecated]
     pub async fn create(
         url: &str,
         google_id: String,
@@ -63,6 +74,21 @@ impl User {
             name,
         }
         .create(url)
+        .await
+    }
+
+    pub async fn n_create(
+        db: Arc<Database>,
+        google_id: String,
+        email: String,
+        name: String,
+    ) -> Result<User, libserver::ServiceError> {
+        NewUser {
+            google_id,
+            email,
+            name,
+        }
+        .n_create(db)
         .await
     }
 
@@ -104,6 +130,7 @@ struct NewUser {
 }
 
 impl NewUser {
+    #[deprecated]
     async fn create(self, url: &str) -> Result<User, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -113,5 +140,13 @@ impl NewUser {
             .get_result(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    async fn n_create(self, db: Arc<Database>) -> Result<User, libserver::ServiceError> {
+        let query = diesel::insert_into(schema::users::table)
+            .values(self)
+            .returning(User::as_returning());
+        let user = crate::RunQueryDsl::get_result(query, db).await?;
+        Ok(user)
     }
 }

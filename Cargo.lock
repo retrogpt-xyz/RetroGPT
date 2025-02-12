@@ -1547,6 +1547,7 @@ dependencies = [
 name = "rgpt-server"
 version = "0.1.0"
 dependencies = [
+ "diesel",
  "futures",
  "http-body-util",
  "hyper",
@@ -1554,6 +1555,7 @@ dependencies = [
  "mime_guess",
  "rgpt-cfg",
  "rgpt-db",
+ "serde",
  "serde_json",
  "thiserror 2.0.11",
  "tokio",

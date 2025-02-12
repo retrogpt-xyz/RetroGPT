@@ -1,6 +1,9 @@
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
-use api::{default_session::get_default_session_route, user_session::get_user_session_route};
+use api::{
+    auth::auth_route, default_session::get_default_session_route,
+    user_session::get_user_session_route,
+};
 use http_body_util::BodyExt;
 use hyper::{body::Body, StatusCode};
 use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, StaticService};
@@ -20,6 +23,7 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
         .with_dyn_route(static_asset_route(cx.static_dir()))
         .with_dyn_route(get_default_session_route(cx.db()))
         .with_dyn_route(get_user_session_route(cx.clone()))
+        .with_dyn_route(auth_route(cx.clone()))
         .with_fallback(StaticService::new("404 not found", StatusCode::NOT_FOUND))
         .serve(listener)
         .await?;
