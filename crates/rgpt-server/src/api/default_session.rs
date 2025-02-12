@@ -39,7 +39,7 @@ impl tower::Service<libserver::Request> for DefaultSession {
     }
 }
 
-pub async fn get_default_session(db: Arc<Database>) -> Result<Session, Box<dyn Error>> {
+pub async fn get_default_session(db: Arc<Database>) -> Result<Session, libserver::ServiceError> {
     let user = User::n_default(db.clone()).await?;
     let session = Session::n_get_for_user(db.clone(), &user).await?;
     Ok(session)

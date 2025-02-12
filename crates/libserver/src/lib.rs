@@ -65,7 +65,7 @@ pub struct PathEqRouter {
 
 impl PathEqRouter {
     pub fn new(path: impl Into<String>) -> PathEqRouter {
-        PathEqRouter { path : path.into()}
+        PathEqRouter { path: path.into() }
     }
 }
 

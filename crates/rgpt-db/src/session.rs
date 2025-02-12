@@ -42,7 +42,7 @@ impl Session {
             .map_err(|e| e.into())
     }
 
-    pub async fn n_delete(self, db: Arc<Database>) -> Result<(), Box<dyn Error>> {
+    pub async fn n_delete(self, db: Arc<Database>) -> Result<(), libserver::ServiceError> {
         let query = diesel::delete(schema::sessions::table.find(self.session_token));
         crate::RunQueryDsl::execute(query, db).await?;
         Ok(())
@@ -66,7 +66,10 @@ impl Session {
         .await
     }
 
-    pub async fn n_create(db: Arc<Database>, user_id: i32) -> Result<Session, Box<dyn Error>> {
+    pub async fn n_create(
+        db: Arc<Database>,
+        user_id: i32,
+    ) -> Result<Session, libserver::ServiceError> {
         let expires_at: NaiveDateTime = Utc::now().naive_utc() + Duration::hours(1);
         let session_token = uuid::Uuid::new_v4().into();
 
@@ -109,7 +112,10 @@ impl Session {
         Self::create(url, user.user_id).await.map_err(|e| e.into())
     }
 
-    pub async fn n_get_for_user(db: Arc<Database>, user: &User) -> Result<Session, Box<dyn Error>> {
+    pub async fn n_get_for_user(
+        db: Arc<Database>,
+        user: &User,
+    ) -> Result<Session, libserver::ServiceError> {
         let query = schema::sessions::table
             .filter(schema::sessions::user_id.eq(user.user_id))
             .limit(1);
@@ -148,7 +154,7 @@ impl NewSession {
             .map_err(|e| e.into())
     }
 
-    pub async fn n_create(self, db: Arc<Database>) -> Result<Session, Box<dyn Error>> {
+    pub async fn n_create(self, db: Arc<Database>) -> Result<Session, libserver::ServiceError> {
         let query = diesel::insert_into(schema::sessions::table)
             .values(self)
             .returning(Session::as_returning());

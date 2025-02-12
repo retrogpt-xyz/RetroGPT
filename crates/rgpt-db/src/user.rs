@@ -20,6 +20,7 @@ pub struct User {
 }
 
 impl User {
+    #[deprecated]
     pub async fn get_by_id(url: &str, id: i32) -> Result<User, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -28,6 +29,15 @@ impl User {
             .first::<User>(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    pub async fn n_get_by_id(
+        db: Arc<Database>,
+        user_id: i32,
+    ) -> Result<User, libserver::ServiceError> {
+        let query = schema::users::table.find(user_id).limit(1);
+        let user = crate::RunQueryDsl::get_result::<User>(query, db).await?;
+        Ok(user)
     }
 
     pub async fn get_by_google_id(url: &str, google_id: &str) -> Result<User, Box<dyn Error>> {
@@ -77,7 +87,7 @@ impl User {
             .map_err(|e| e.into())
     }
 
-    pub async fn n_default(db: Arc<Database>) -> Result<User, Box<dyn Error>> {
+    pub async fn n_default(db: Arc<Database>) -> Result<User, libserver::ServiceError> {
         let query = schema::users::table.find(1).limit(1);
         crate::RunQueryDsl::get_result::<User>(query, db)
             .await

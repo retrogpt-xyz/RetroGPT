@@ -1538,6 +1538,7 @@ dependencies = [
  "chrono",
  "diesel",
  "diesel-async",
+ "libserver",
  "tokio",
  "uuid",
 ]
@@ -1547,12 +1548,14 @@ name = "rgpt-server"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "http-body-util",
  "hyper",
  "libserver",
  "mime_guess",
  "rgpt-cfg",
  "rgpt-db",
  "serde_json",
+ "thiserror 2.0.11",
  "tokio",
  "tokio-util",
  "tower",
