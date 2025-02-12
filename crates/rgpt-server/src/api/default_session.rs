@@ -1,4 +1,4 @@
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 
 use hyper::Response;
 use libserver::{static_body, DynRoute, PathEqRouter, Route};
