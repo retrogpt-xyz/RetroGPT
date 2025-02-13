@@ -63,20 +63,27 @@ pub async fn collect_body_string(
 pub async fn validate_session(
     db: Arc<Database>,
     headers: &HeaderMap,
-    user_id: i32,
+    user_id: Option<i32>,
 ) -> Result<Session, libserver::ServiceError> {
     let session_token = match headers.get("X-Session-Token") {
         Some(token) => token.to_str()?.to_owned(),
         None => Err(InvalidSessionTokenHeader)?,
     };
 
-    let session = Session::n_get_by_token(db, session_token).await?;
+    let session = Session::n_get_by_token(db.clone(), session_token).await?;
 
-    if session.user_id != user_id {
-        Err(InvalidSessionTokenHeader)?
+    if let Some(user_id) = user_id {
+        if session.user_id != user_id {
+            Err(InvalidSessionTokenHeader)?;
+        };
     }
 
-    Ok(session)
+    if !session.validate() {
+        session.n_delete(db.clone()).await?;
+        Err(InvalidSessionTokenHeader)?
+    } else {
+        return Ok(session);
+    }
 }
 
 #[derive(Debug, thiserror::Error)]

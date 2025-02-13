@@ -7,7 +7,11 @@ use rgpt_db::{chat::Chat, msg::Msg};
 use serde_json::json;
 
 pub fn get_chat_msgs_route(cx: Arc<Context>) -> DynRoute {
-    Route::from_parts(PathEqRouter::new( "/api/chat/messages"), GetChatMsgs::new(cx)).make_dyn()
+    Route::from_parts(
+        PathEqRouter::new("/api/chat/messages"),
+        GetChatMsgs::new(cx),
+    )
+    .make_dyn()
 }
 
 #[derive(Clone)]
@@ -48,7 +52,7 @@ pub async fn get_chat_msgs(
     let body = crate::collect_body_string(req).await?;
     let chat_id = body.parse::<i32>()?;
     let chat = Chat::n_get_by_id(cx.db(), chat_id).await?;
-    let _session = crate::validate_session(cx.db(), &headers, chat.user_id).await?;
+    let _session = crate::validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
 
     let msgs = match chat.head_msg {
         Some(msg_id) => Msg::n_get_by_id(cx.db(), msg_id)

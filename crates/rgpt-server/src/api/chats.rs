@@ -47,7 +47,7 @@ pub async fn get_user_chats(
     let headers = req.headers().to_owned();
     let body = crate::collect_body_string(req).await?;
     let user_id = body.parse::<i32>()?;
-    let session = crate::validate_session(cx.db(), &headers, user_id).await?;
+    let session = crate::validate_session(cx.db(), &headers, Some(user_id)).await?;
 
     let user = User::n_get_by_id(cx.db(), user_id).await?;
 
