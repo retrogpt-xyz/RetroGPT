@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, sync::Arc};
 
 use chrono::NaiveDateTime;
 use diesel::{
@@ -6,7 +6,7 @@ use diesel::{
 };
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{msg, schema};
+use crate::{msg, schema, Database};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::chats)]
@@ -21,6 +21,7 @@ pub struct Chat {
 }
 
 impl Chat {
+    #[deprecated]
     pub async fn get_by_id(url: &str, id: i32) -> Result<Chat, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -29,6 +30,12 @@ impl Chat {
             .first::<Chat>(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    pub async fn n_get_by_id(db: Arc<Database>, id: i32) -> Result<Chat, libserver::ServiceError> {
+        let query = schema::chats::table.find(id);
+        let chat = crate::RunQueryDsl::get_result::<Chat>(query, db).await?;
+        Ok(chat)
     }
 
     pub async fn append_to_chat(&self, url: &str, msg: msg::Msg) -> Result<Chat, Box<dyn Error>> {

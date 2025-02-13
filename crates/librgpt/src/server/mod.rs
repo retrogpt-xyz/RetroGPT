@@ -35,12 +35,6 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
     println!("{path}");
 
     handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
-    handle_endpoint!(
-        predicate::api_chat_messages,
-        endpoint::api_chat_messages,
-        cfg,
-        req
-    );
 
     Ok(error::error_400("request did not match any endpoints"))
 }
