@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use diesel::{prelude::Insertable, Selectable};
 use hyper::{Response, StatusCode};
-use libserver::{static_body, DynRoute, PathEqRouter, Route};
+use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
 use rgpt_cfg::Context;
 use rgpt_db::user::User;
 use serde::Deserialize;
@@ -69,6 +69,6 @@ pub async fn authenticate(
 
     let resp = Response::builder()
         .status(StatusCode::OK)
-        .body(static_body(user.user_id.to_string()))?;
+        .body(single_frame_body(user.user_id.to_string()))?;
     Ok(resp)
 }

@@ -4,7 +4,9 @@ use hyper::{
     header::CONTENT_TYPE,
     Response, StatusCode,
 };
-use libserver::{body_stream, BodyInner, Request, ServiceBoxFuture, ServiceError, ServiceResponse};
+use libserver::{
+    make_body_from_stream, BodyInner, Request, ServiceBoxFuture, ServiceError, ServiceResponse,
+};
 use std::{io, path::PathBuf};
 use tokio::fs::File;
 use tokio_util::codec::{BytesCodec, FramedRead};
@@ -44,7 +46,7 @@ async fn serve_static(path: PathBuf, req: Request) -> Result<ServiceResponse, Se
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header(CONTENT_TYPE, mime_type)
-        .body(body_stream(stream))?)
+        .body(make_body_from_stream(stream))?)
 }
 
 fn parse_path(base: PathBuf, path: impl Into<PathBuf>) -> PathBuf {

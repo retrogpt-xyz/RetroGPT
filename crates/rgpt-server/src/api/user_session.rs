@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hyper::{Response, StatusCode};
-use libserver::{static_body, DynRoute, PathEqRouter, Route};
+use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
 use rgpt_cfg::Context;
 use rgpt_db::{session::Session, user::User};
 
@@ -49,6 +49,6 @@ pub async fn get_user_session(
 
     let resp = Response::builder()
         .status(StatusCode::OK)
-        .body(static_body(session.session_token))?;
+        .body(single_frame_body(session.session_token))?;
     Ok(resp)
 }

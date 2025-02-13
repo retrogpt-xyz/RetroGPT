@@ -220,15 +220,19 @@ impl TowerService<Request> for Service {
     }
 }
 
-pub fn static_body(body: impl Into<Bytes> + Send + 'static) -> StreamBody<BoxedBodyStream> {
-    body_stream(once_body(body))
+pub fn single_frame_body(body: impl Into<Bytes> + Send + 'static) -> StreamBody<BoxedBodyStream> {
+    make_body_from_stream(single_frame_stream(body))
 }
 
-pub fn once_body(body: impl Into<Bytes>) -> impl Stream<Item = BodyInner> {
-    futures::stream::once(async { Ok(Frame::data(body.into())) })
+pub fn make_frame(frame: impl Into<Bytes>) -> BodyInner {
+    Ok(Frame::data(frame.into()))
 }
 
-pub fn body_stream<S>(stream: S) -> StreamBody<BoxedBodyStream>
+pub fn single_frame_stream(body: impl Into<Bytes>) -> impl Stream<Item = BodyInner> {
+    futures::stream::once(async { make_frame(body) })
+}
+
+pub fn make_body_from_stream<S>(stream: S) -> StreamBody<BoxedBodyStream>
 where
     S: Stream<Item = BodyInner> + Send + 'static,
 {
@@ -260,7 +264,7 @@ impl<T: Into<Bytes> + Clone + Send + 'static> TowerService<Request> for StaticSe
     }
 
     fn call(&mut self, _req: Request) -> Self::Future {
-        let mut resp = Response::new(static_body(self.body.clone()));
+        let mut resp = Response::new(single_frame_body(self.body.clone()));
         *resp.status_mut() = self.status;
         Box::pin(async { Ok(resp) })
     }

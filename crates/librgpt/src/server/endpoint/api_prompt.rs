@@ -116,8 +116,8 @@ pub async fn api_prompt_inner(cfg: &Cfg, req: IncReqst) -> Result<OutResp, OutRe
         .unwrap()
         .filter_map(|c| async move {
             c.ok()
-                .and_then(|x| x.choices.into_iter().next())
-                .and_then(|x| x.delta.content)
+                .and_then(|stream_chunk| stream_chunk.choices.into_iter().next())
+                .and_then(|stream_chunk| stream_chunk.delta.content)
         })
         .inspect(move |x| stream_tx.unbounded_send(x.clone()).unwrap())
         .map(|x| Ok(Frame::data(Bytes::from(x))));

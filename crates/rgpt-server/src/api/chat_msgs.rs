@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hyper::{Response, StatusCode};
-use libserver::{static_body, DynRoute, PathEqRouter, Route};
+use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
 use rgpt_cfg::Context;
 use rgpt_db::{chat::Chat, msg::Msg};
 use serde_json::json;
@@ -54,25 +54,35 @@ pub async fn get_chat_msgs(
     let chat = Chat::n_get_by_id(cx.db(), chat_id).await?;
     let _session = crate::validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
 
-    let msgs = match chat.head_msg {
-        Some(msg_id) => Msg::n_get_by_id(cx.db(), msg_id)
-            .await?
-            .n_get_msg_chain(cx.db())
-            .await?
-            .into_iter()
-            .map(|msg| {
-                json!({
-                    "text": msg.body,
-                    "sender": msg.sender
-                })
+    let msgs = get_chat_message_chain(cx.db(), &chat)
+        .await?
+        .into_iter()
+        .map(|msg| {
+            json!({
+                "text": msg.body,
+                "sender": msg.sender
             })
-            .collect(),
-        None => vec![],
-    };
+        })
+        .collect::<Vec<_>>();
 
     let resp = Response::builder()
         .status(StatusCode::OK)
         .header("X-Chat-ID", chat_id.to_string())
-        .body(static_body(json!(msgs).to_string()))?;
+        .body(single_frame_body(json!(msgs).to_string()))?;
     Ok(resp)
+}
+
+pub async fn get_chat_message_chain(
+    db: Arc<rgpt_db::Database>,
+    chat: &Chat,
+) -> Result<Vec<Msg>, libserver::ServiceError> {
+    Ok(match chat.head_msg {
+        Some(msg_id) => {
+            Msg::n_get_by_id(db.clone(), msg_id)
+                .await?
+                .n_get_msg_chain(db.clone())
+                .await?
+        }
+        None => vec![],
+    })
 }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hyper::Response;
-use libserver::{static_body, DynRoute, PathEqRouter, Route};
+use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
 use rgpt_db::{session::Session, user::User, Database};
 
 pub fn get_default_session_route(db: Arc<Database>) -> DynRoute {
@@ -33,7 +33,7 @@ impl tower::Service<libserver::Request> for DefaultSession {
         let db = self.db.clone();
         Box::pin(async move {
             let session = get_default_session(db).await.unwrap();
-            let response = Response::new(static_body(session.session_token));
+            let response = Response::new(single_frame_body(session.session_token));
             Ok(response)
         })
     }

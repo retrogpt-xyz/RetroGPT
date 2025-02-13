@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hyper::{Response, StatusCode};
-use libserver::{static_body, DynRoute, PathEqRouter, Route};
+use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
 use rgpt_cfg::Context;
 use rgpt_db::user::User;
 use serde_json::json;
@@ -64,6 +64,6 @@ pub async fn get_user_chats(
 
     let resp = Response::builder()
         .status(StatusCode::OK)
-        .body(static_body(json!(user_chats).to_string()))?;
+        .body(single_frame_body(json!(user_chats).to_string()))?;
     Ok(resp)
 }
