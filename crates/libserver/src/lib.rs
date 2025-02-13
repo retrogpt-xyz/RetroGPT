@@ -1,7 +1,7 @@
 use std::{future::Future, io, path::PathBuf, pin::Pin, sync::Arc};
 
 use bytes::Bytes;
-use futures::Stream;
+use futures::{Stream, TryFutureExt};
 use http_body_util::StreamBody;
 use hyper::{
     body::{Frame, Incoming},
@@ -214,7 +214,8 @@ impl TowerService<Request> for Service {
                 .find(|r| r.router.matches(&req))
                 .map(|r| &mut r.service)
                 .unwrap_or(&mut self.fallback)
-                .call(req),
+                .call(req)
+                .inspect_err(|e| println!("{e}")),
         )
     }
 }

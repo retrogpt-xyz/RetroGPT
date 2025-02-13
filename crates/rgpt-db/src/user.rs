@@ -4,7 +4,10 @@ use chrono::NaiveDateTime;
 use diesel::{ExpressionMethods, Insertable, QueryDsl, Queryable, Selectable, SelectableHelper};
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{chat, schema, Database};
+use crate::{
+    chat::{self, Chat},
+    schema, Database,
+};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::users)]
@@ -92,6 +95,7 @@ impl User {
         .await
     }
 
+    #[deprecated]
     pub async fn get_chats(&self, url: &str) -> Result<Vec<chat::Chat>, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -100,6 +104,15 @@ impl User {
             .get_results(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    pub async fn n_get_chats(
+        &self,
+        db: Arc<Database>,
+    ) -> Result<Vec<chat::Chat>, libserver::ServiceError> {
+        let query = schema::chats::table.filter(schema::chats::user_id.eq(self.user_id));
+        let chats = crate::RunQueryDsl::get_results::<Chat>(query, db).await?;
+        Ok(chats)
     }
 
     #[deprecated]

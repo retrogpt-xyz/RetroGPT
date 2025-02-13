@@ -23,6 +23,7 @@ pub struct Session {
 }
 
 impl Session {
+    #[deprecated]
     pub async fn get_by_token(url: &str, token: String) -> Result<Session, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -31,6 +32,15 @@ impl Session {
             .first(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    pub async fn n_get_by_token(
+        db: Arc<Database>,
+        token: String,
+    ) -> Result<Session, libserver::ServiceError> {
+        let query = schema::sessions::table.find(token);
+        let session = crate::RunQueryDsl::get_result::<Session>(query, db).await?;
+        Ok(session)
     }
 
     #[deprecated]

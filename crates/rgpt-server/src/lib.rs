@@ -1,13 +1,14 @@
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
 use api::{
-    auth::auth_route, default_session::get_default_session_route,
+    auth::auth_route, chats::get_user_chats_route, default_session::get_default_session_route,
     user_session::get_user_session_route,
 };
 use http_body_util::BodyExt;
-use hyper::{body::Body, StatusCode};
+use hyper::{body::Body, HeaderMap, StatusCode};
 use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, StaticService};
 use rgpt_cfg::Context;
+use rgpt_db::{session::Session, Database};
 use tokio::net::TcpListener;
 
 pub mod api;
@@ -24,6 +25,7 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
         .with_dyn_route(get_default_session_route(cx.db()))
         .with_dyn_route(get_user_session_route(cx.clone()))
         .with_dyn_route(auth_route(cx.clone()))
+        .with_dyn_route(get_user_chats_route(cx.clone()))
         .with_fallback(StaticService::new("404 not found", StatusCode::NOT_FOUND))
         .serve(listener)
         .await?;
@@ -57,6 +59,29 @@ pub async fn collect_body_string(
     Ok(string)
 }
 
+pub async fn validate_session(
+    db: Arc<Database>,
+    headers: &HeaderMap,
+    user_id: i32,
+) -> Result<Session, libserver::ServiceError> {
+    let session_token = match headers.get("X-Session-Token") {
+        Some(token) => token.to_str()?.to_owned(),
+        None => Err(InvalidSessionTokenHeader)?,
+    };
+
+    let session = Session::n_get_by_token(db, session_token).await?;
+
+    if session.user_id != user_id {
+        Err(InvalidSessionTokenHeader)?
+    }
+
+    Ok(session)
+}
+
 #[derive(Debug, thiserror::Error)]
 #[error("Request Too Large")]
 pub struct RequestTooLarge;
+
+#[derive(Debug, thiserror::Error)]
+#[error("Invalid Session Token Header")]
+pub struct InvalidSessionTokenHeader;
