@@ -8,21 +8,21 @@ use rgpt_db::user::User;
 use serde::Deserialize;
 
 pub fn auth_route(cx: Arc<Context>) -> DynRoute {
-    Route::from_parts(PathEqRouter::new("/api/auth"), GetAuth::new(cx)).make_dyn()
+    Route::from_parts(PathEqRouter::new("/api/auth"), AuthService::new(cx)).make_dyn()
 }
 
 #[derive(Clone)]
-pub struct GetAuth {
+pub struct AuthService {
     cx: Arc<Context>,
 }
 
-impl GetAuth {
+impl AuthService {
     pub fn new(cx: Arc<Context>) -> Self {
         Self { cx }
     }
 }
 
-impl tower::Service<libserver::Request> for GetAuth {
+impl tower::Service<libserver::Request> for AuthService {
     type Response = libserver::ServiceResponse;
     type Error = libserver::ServiceError;
     type Future = libserver::ServiceBoxFuture;
