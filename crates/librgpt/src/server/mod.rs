@@ -34,8 +34,6 @@ pub async fn handle_request(cfg: Arc<Cfg>, req: IncReqst) -> Result<OutResp, Inf
     let path = req.uri().path();
     println!("{path}");
 
-    handle_endpoint!(predicate::api_prompt, endpoint::api_prompt, cfg, req);
-
     Ok(error::error_400("request did not match any endpoints"))
 }
 
