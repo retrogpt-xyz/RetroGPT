@@ -36,6 +36,7 @@ impl Msg {
         Ok(msg)
     }
 
+    #[deprecated]
     pub async fn create(
         url: &str,
         body: String,
@@ -50,6 +51,23 @@ impl Msg {
             parent_message_id,
         }
         .create(url)
+        .await
+    }
+
+    pub async fn n_create(
+        db: Arc<Database>,
+        body: String,
+        sender: String,
+        user_id: i32,
+        parent_message_id: Option<i32>,
+    ) -> Result<Msg, libserver::ServiceError> {
+        NewMsg {
+            body,
+            sender,
+            user_id,
+            parent_message_id,
+        }
+        .n_create(db)
         .await
     }
 
@@ -102,5 +120,13 @@ impl NewMsg {
             .get_result(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    async fn n_create(self, db: Arc<Database>) -> Result<Msg, libserver::ServiceError> {
+        let query = diesel::insert_into(schema::msgs::table)
+            .values(self)
+            .returning(Msg::as_returning());
+        let msg = crate::RunQueryDsl::get_result(query, db).await?;
+        Ok(msg)
     }
 }

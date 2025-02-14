@@ -1,5 +1,6 @@
 use std::{env, error::Error, path::PathBuf, sync::Arc};
 
+use async_openai::config::OpenAIConfig;
 use rgpt_db::Database;
 
 pub struct Context {
@@ -32,14 +33,17 @@ impl Context {
 pub struct SharedState {
     /// Connection to the DB
     pub db: Arc<Database>,
-    /// `reqwest` Client instance
-    pub client: reqwest::Client,
+    pub client: async_openai::Client<OpenAIConfig>,
 }
 
 impl SharedState {
     pub async fn new() -> Result<SharedState, Box<dyn Error>> {
         let db = Database::establish_arc().await;
-        let client = reqwest::Client::new();
+
+        let api_key = env::var("OPENAI_API_KEY")?;
+        let client = async_openai::Client::with_config(
+            async_openai::config::OpenAIConfig::new().with_api_key(api_key),
+        );
 
         Ok(SharedState { db, client })
     }
@@ -50,9 +54,6 @@ pub struct Config {
     /// The directory prepended to the path
     /// for any static asset requests.
     pub static_dir: PathBuf,
-
-    /// OpenAI API Key
-    pub api_key: String, // TODO: Wrap in opaque type
 
     /// The largest size in bytes of the largest
     /// request the server will accept
@@ -77,7 +78,6 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Result<Config, Box<dyn Error>> {
-        let api_key = env::var("OPENAI_API_KEY")?;
         let static_dir = PathBuf::from("static/");
         let max_req_size = 1024 * 1024;
         let port = 3000;
@@ -95,7 +95,6 @@ impl Config {
 
         Ok(Config {
             static_dir,
-            api_key,
             max_req_size,
             port,
             max_tokens,

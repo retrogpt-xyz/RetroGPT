@@ -1527,6 +1527,7 @@ dependencies = [
 name = "rgpt-cfg"
 version = "0.1.0"
 dependencies = [
+ "async-openai",
  "reqwest",
  "rgpt-db",
 ]
@@ -1547,6 +1548,7 @@ dependencies = [
 name = "rgpt-server"
 version = "0.1.0"
 dependencies = [
+ "async-openai",
  "diesel",
  "futures",
  "http-body-util",

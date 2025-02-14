@@ -38,6 +38,7 @@ impl Chat {
         Ok(chat)
     }
 
+    #[deprecated]
     pub async fn append_to_chat(&self, url: &str, msg: msg::Msg) -> Result<Chat, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -52,12 +53,36 @@ impl Chat {
             .map_err(|e| e.into())
     }
 
+    pub async fn n_append_to_chat(
+        &self,
+        db: Arc<Database>,
+        msg: &msg::Msg,
+    ) -> Result<Chat, libserver::ServiceError> {
+        let query = diesel::update(schema::chats::table.find(self.id))
+            .set((
+                schema::chats::head_msg.eq(msg.id),
+                schema::chats::updated_at.eq(chrono::Utc::now().naive_utc()),
+            ))
+            .returning(Chat::as_returning());
+        let chat = crate::RunQueryDsl::get_result(query, db).await?;
+        Ok(chat)
+    }
+
+    #[deprecated]
     pub async fn create(
         url: &str,
         user_id: i32,
         name: Option<String>,
     ) -> Result<Chat, Box<dyn Error>> {
         NewChat { user_id, name }.create(url).await
+    }
+
+    pub async fn n_create(
+        db: Arc<Database>,
+        user_id: i32,
+        name: Option<String>,
+    ) -> Result<Chat, libserver::ServiceError> {
+        NewChat { user_id, name }.n_create(db).await
     }
 }
 
@@ -70,6 +95,7 @@ struct NewChat {
 }
 
 impl NewChat {
+    #[deprecated]
     async fn create(self, url: &str) -> Result<Chat, Box<dyn Error>> {
         let conn = &mut AsyncPgConnection::establish(url).await?;
 
@@ -79,5 +105,13 @@ impl NewChat {
             .get_result(conn)
             .await
             .map_err(|e| e.into())
+    }
+
+    async fn n_create(self, db: Arc<Database>) -> Result<Chat, libserver::ServiceError> {
+        let query = diesel::insert_into(schema::chats::table)
+            .values(self)
+            .returning(Chat::as_returning());
+        let chat = crate::RunQueryDsl::get_result(query, db).await?;
+        Ok(chat)
     }
 }
