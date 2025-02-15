@@ -1,16 +1,11 @@
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{
     prelude::Insertable, ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper,
 };
-use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{
-    schema,
-    user::{self, User},
-    Database,
-};
+use crate::{schema, user::User, Database, RunQueryDsl};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::sessions)]
@@ -23,57 +18,26 @@ pub struct Session {
 }
 
 impl Session {
-    #[deprecated]
-    pub async fn get_by_token(url: &str, token: String) -> Result<Session, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        schema::sessions::table
-            .find(token)
-            .first(conn)
-            .await
-            .map_err(|e| e.into())
-    }
-
     pub async fn n_get_by_token(
         db: Arc<Database>,
         token: String,
     ) -> Result<Session, libserver::ServiceError> {
-        let query = schema::sessions::table.find(token);
-        let session = crate::RunQueryDsl::get_result::<Session>(query, db).await?;
+        let session = schema::sessions::table
+            .find(token)
+            .get_result::<Session>(db)
+            .await?;
         Ok(session)
     }
 
-    #[deprecated]
-    pub async fn delete(self, conn: &mut AsyncPgConnection) -> Result<(), Box<dyn Error>> {
-        diesel::delete(schema::sessions::table.find(self.session_token))
-            .execute(conn)
-            .await
-            .map(|_| ())
-            .map_err(|e| e.into())
-    }
-
     pub async fn n_delete(self, db: Arc<Database>) -> Result<(), libserver::ServiceError> {
-        let query = diesel::delete(schema::sessions::table.find(self.session_token));
-        crate::RunQueryDsl::execute(query, db).await?;
+        diesel::delete(schema::sessions::table.find(self.session_token))
+            .execute(db)
+            .await?;
         Ok(())
     }
 
     pub fn validate(&self) -> bool {
         expires_at_is_valid(&self.expires_at)
-    }
-
-    #[deprecated]
-    pub async fn create(url: &str, user_id: i32) -> Result<Session, Box<dyn Error>> {
-        let expires_at: NaiveDateTime = Utc::now().naive_utc() + Duration::hours(1);
-        let session_token = uuid::Uuid::new_v4().into();
-
-        NewSession {
-            user_id,
-            expires_at,
-            session_token,
-        }
-        .create(url)
-        .await
     }
 
     pub async fn n_create(
@@ -92,45 +56,17 @@ impl Session {
         .await
     }
 
-    #[deprecated]
-    pub async fn get_session_for_user(
-        url: &str,
-        user: user::User,
-    ) -> Result<Session, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        match schema::sessions::table
-            .filter(schema::sessions::user_id.eq(user.user_id))
-            .first::<Session>(conn)
-            .await
-        {
-            Ok(session) => {
-                if session.validate() {
-                    return Ok(session);
-                } else {
-                    session
-                        .delete(conn)
-                        .await
-                        .map_err(Into::<Box<dyn Error>>::into)?
-                }
-            }
-            Err(e) => {
-                dbg!(e);
-            }
-        };
-
-        Self::create(url, user.user_id).await.map_err(|e| e.into())
-    }
-
     pub async fn n_get_for_user(
         db: Arc<Database>,
         user: &User,
     ) -> Result<Session, libserver::ServiceError> {
-        let query = schema::sessions::table
+        let existing_session = schema::sessions::table
             .filter(schema::sessions::user_id.eq(user.user_id))
-            .limit(1);
+            .limit(1)
+            .get_result::<Session>(db.clone())
+            .await;
 
-        if let Ok(session) = crate::RunQueryDsl::get_result::<Session>(query, db.clone()).await {
+        if let Ok(session) = existing_session {
             if session.validate() {
                 return Ok(session);
             } else {
@@ -152,23 +88,12 @@ struct NewSession {
 }
 
 impl NewSession {
-    #[deprecated]
-    async fn create(self, url: &str) -> Result<Session, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        diesel::insert_into(schema::sessions::table)
+    pub async fn n_create(self, db: Arc<Database>) -> Result<Session, libserver::ServiceError> {
+        let session = diesel::insert_into(schema::sessions::table)
             .values(self)
             .returning(Session::as_returning())
-            .get_result(conn)
-            .await
-            .map_err(|e| e.into())
-    }
-
-    pub async fn n_create(self, db: Arc<Database>) -> Result<Session, libserver::ServiceError> {
-        let query = diesel::insert_into(schema::sessions::table)
-            .values(self)
-            .returning(Session::as_returning());
-        let session = crate::RunQueryDsl::get_result(query, db).await?;
+            .get_result(db)
+            .await?;
         Ok(session)
     }
 }

@@ -1,10 +1,9 @@
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 
 use chrono::NaiveDateTime;
 use diesel::{prelude::Insertable, QueryDsl, Queryable, Selectable, SelectableHelper};
-use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{schema, Database};
+use crate::{schema, Database, RunQueryDsl};
 
 #[derive(Queryable, Selectable, Clone, Debug)]
 #[diesel(table_name = schema::msgs)]
@@ -19,39 +18,9 @@ pub struct Msg {
 }
 
 impl Msg {
-    #[deprecated]
-    pub async fn get_by_id(url: &str, id: i32) -> Result<Msg, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        schema::msgs::table
-            .find(id)
-            .first::<Msg>(conn)
-            .await
-            .map_err(|e| e.into())
-    }
-
     pub async fn n_get_by_id(db: Arc<Database>, id: i32) -> Result<Msg, libserver::ServiceError> {
-        let query = schema::msgs::table.find(id);
-        let msg = crate::RunQueryDsl::get_result::<Msg>(query, db).await?;
+        let msg = schema::msgs::table.find(id).get_result::<Msg>(db).await?;
         Ok(msg)
-    }
-
-    #[deprecated]
-    pub async fn create(
-        url: &str,
-        body: String,
-        sender: String,
-        user_id: i32,
-        parent_message_id: Option<i32>,
-    ) -> Result<Msg, Box<dyn Error>> {
-        NewMsg {
-            body,
-            sender,
-            user_id,
-            parent_message_id,
-        }
-        .create(url)
-        .await
     }
 
     pub async fn n_create(
@@ -69,19 +38,6 @@ impl Msg {
         }
         .n_create(db)
         .await
-    }
-
-    #[deprecated]
-    pub async fn get_msg_chain(self, url: &str) -> Result<Vec<Msg>, Box<dyn Error>> {
-        match self.parent_message_id {
-            Some(id) => {
-                let parent = Msg::get_by_id(url, id).await?;
-                let mut parents = Box::pin(parent.get_msg_chain(url)).await?;
-                parents.push(self);
-                Ok(parents)
-            }
-            None => Ok(vec![self]),
-        }
     }
 
     pub async fn n_get_msg_chain(
@@ -111,22 +67,12 @@ struct NewMsg {
 }
 
 impl NewMsg {
-    async fn create(&self, url: &str) -> Result<Msg, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        diesel::insert_into(schema::msgs::table)
+    async fn n_create(self, db: Arc<Database>) -> Result<Msg, libserver::ServiceError> {
+        let msg = diesel::insert_into(schema::msgs::table)
             .values(self)
             .returning(Msg::as_returning())
-            .get_result(conn)
-            .await
-            .map_err(|e| e.into())
-    }
-
-    async fn n_create(self, db: Arc<Database>) -> Result<Msg, libserver::ServiceError> {
-        let query = diesel::insert_into(schema::msgs::table)
-            .values(self)
-            .returning(Msg::as_returning());
-        let msg = crate::RunQueryDsl::get_result(query, db).await?;
+            .get_result(db)
+            .await?;
         Ok(msg)
     }
 }

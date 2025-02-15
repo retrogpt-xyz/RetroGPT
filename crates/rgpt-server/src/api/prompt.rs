@@ -10,7 +10,7 @@ use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 use hyper::{Response, StatusCode};
 use libserver::{make_body_from_stream, make_frame, DynRoute, PathEqRouter, Route};
 use rgpt_cfg::Context;
-use rgpt_db::{chat::Chat, msg::Msg};
+use rgpt_db::{chat::Chat, msg::Msg, RunQueryDsl};
 use serde::Deserialize;
 
 use crate::validate_session;
@@ -228,9 +228,10 @@ async fn generate_chat_name(
         .message
         .content;
 
-    let query = diesel::update(rgpt_db::schema::chats::table.find(chat.id))
-        .set(rgpt_db::schema::chats::name.eq(chat_title));
-    rgpt_db::RunQueryDsl::execute(query, cx.db()).await?;
+    diesel::update(rgpt_db::schema::chats::table.find(chat.id))
+        .set(rgpt_db::schema::chats::name.eq(chat_title))
+        .execute(cx.db())
+        .await?;
 
     Ok(())
 }
