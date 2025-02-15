@@ -1,12 +1,11 @@
-use std::error::Error;
+use std::sync::Arc;
 
 use chrono::NaiveDateTime;
 use diesel::{
     prelude::Insertable, ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper,
 };
-use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 
-use crate::{msg, schema};
+use crate::{msg, schema, Database, RunQueryDsl};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::chats)]
@@ -21,36 +20,33 @@ pub struct Chat {
 }
 
 impl Chat {
-    pub async fn get_by_id(url: &str, id: i32) -> Result<Chat, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        schema::chats::table
-            .find(id)
-            .first::<Chat>(conn)
-            .await
-            .map_err(|e| e.into())
+    pub async fn n_get_by_id(db: Arc<Database>, id: i32) -> Result<Chat, libserver::ServiceError> {
+        let chat = schema::chats::table.find(id).get_result(db).await?;
+        Ok(chat)
     }
 
-    pub async fn append_to_chat(&self, url: &str, msg: msg::Msg) -> Result<Chat, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        diesel::update(schema::chats::table.find(self.id))
+    pub async fn n_append_to_chat(
+        &self,
+        db: Arc<Database>,
+        msg: &msg::Msg,
+    ) -> Result<Chat, libserver::ServiceError> {
+        let chat = diesel::update(schema::chats::table.find(self.id))
             .set((
                 schema::chats::head_msg.eq(msg.id),
                 schema::chats::updated_at.eq(chrono::Utc::now().naive_utc()),
             ))
             .returning(Chat::as_returning())
-            .get_result(conn)
-            .await
-            .map_err(|e| e.into())
+            .get_result(db)
+            .await?;
+        Ok(chat)
     }
 
-    pub async fn create(
-        url: &str,
+    pub async fn n_create(
+        db: Arc<Database>,
         user_id: i32,
         name: Option<String>,
-    ) -> Result<Chat, Box<dyn Error>> {
-        NewChat { user_id, name }.create(url).await
+    ) -> Result<Chat, libserver::ServiceError> {
+        NewChat { user_id, name }.n_create(db).await
     }
 }
 
@@ -63,14 +59,12 @@ struct NewChat {
 }
 
 impl NewChat {
-    async fn create(self, url: &str) -> Result<Chat, Box<dyn Error>> {
-        let conn = &mut AsyncPgConnection::establish(url).await?;
-
-        diesel::insert_into(schema::chats::table)
+    async fn n_create(self, db: Arc<Database>) -> Result<Chat, libserver::ServiceError> {
+        let chat = diesel::insert_into(schema::chats::table)
             .values(self)
             .returning(Chat::as_returning())
-            .get_result(conn)
-            .await
-            .map_err(|e| e.into())
+            .get_result(db)
+            .await?;
+        Ok(chat)
     }
 }
