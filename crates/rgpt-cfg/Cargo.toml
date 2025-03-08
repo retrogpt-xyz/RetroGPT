@@ -6,5 +6,5 @@ edition.workspace = true
 [dependencies]
 rgpt-db.workspace = true
 
-reqwest = { version = "0.12.11", features = ["json"] }
-async-openai = "0.27.2"
+async-openai.workspace = true
+reqwest.workspace = true
