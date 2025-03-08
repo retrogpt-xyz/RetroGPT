@@ -7,5 +7,4 @@ edition.workspace = true
 rgpt-db.workspace = true
 
 async-openai.workspace = true
-
 reqwest.workspace = true

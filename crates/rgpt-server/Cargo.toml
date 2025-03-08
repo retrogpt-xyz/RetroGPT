@@ -9,7 +9,6 @@ rgpt-cfg.workspace = true
 rgpt-db.workspace = true
 
 async-openai.workspace = true
-
 mime_guess.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true
