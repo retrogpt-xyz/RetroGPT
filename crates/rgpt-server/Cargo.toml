@@ -8,6 +8,8 @@ libserver.workspace = true
 rgpt-cfg.workspace = true
 rgpt-db.workspace = true
 
+async-openai.workspace = true
+
 mime_guess = "2.0.5"
 tokio = { version = "1.42.0", features = ["full"] }
 tokio-util = { version = "0.7.13", features = ["codec"] }
@@ -19,4 +21,3 @@ thiserror = "2.0.11"
 http-body-util = "0.1.2"
 diesel = "2.2.7"
 serde = "1.0.217"
-async-openai = "0.27.2"

@@ -3,7 +3,8 @@ resolver = "2"
 members = [
   "crates/librgpt",
   "crates/libserver",
-  "crates/rgpt", "crates/rgpt-cfg",
+  "crates/rgpt",
+  "crates/rgpt-cfg",
   "crates/rgpt-db",
   "crates/rgpt-server",
 ]
@@ -17,4 +18,6 @@ librgpt = { path = "crates/librgpt" }
 libserver = { path = "crates/libserver" }
 rgpt-db = { path = "crates/rgpt-db" }
 rgpt-server = { path = "crates/rgpt-server" }
-rgpt-cfg= { path = "crates/rgpt-cfg" }
+rgpt-cfg = { path = "crates/rgpt-cfg" }
+
+async-openai = "0.28.0"
