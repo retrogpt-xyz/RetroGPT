@@ -10,5 +10,4 @@ rgpt-cfg.workspace = true
 libserver.workspace = true
 
 async-openai.workspace = true
-
-tokio = { version = "1.42.0", features = ["full"] }
+tokio.workspace = true
