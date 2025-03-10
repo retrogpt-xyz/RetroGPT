@@ -19,15 +19,15 @@ pub type BoxedBodyStream = Box<dyn Stream<Item = BodyInner> + Send + Unpin + 'st
 
 pub type ServiceResponse = Response<StreamBody<BoxedBodyStream>>;
 pub type ServiceError = Box<dyn std::error::Error + Send + Sync>;
-pub type ServiceBoxFuture =
-    Pin<Box<dyn Future<Output = Result<ServiceResponse, ServiceError>> + Send + 'static>>;
+pub type ServiceResult = Result<ServiceResponse, ServiceError>;
+pub type ServiceBoxFuture = Pin<Box<dyn Future<Output = ServiceResult> + Send + 'static>>;
 
 pub type DynRouter = Arc<dyn Router>;
 pub type DynService = BoxCloneSyncService<Request, ServiceResponse, ServiceError>;
 pub type DynRoute = Route<DynRouter, DynService>;
 
-
-pub const NOT_FOUND: StaticService<&str> = StaticService::new("404 Not Found", StatusCode::NOT_FOUND);
+pub const NOT_FOUND: StaticService<&str> =
+    StaticService::new("404 Not Found", StatusCode::NOT_FOUND);
 
 pub trait Router: Send + Sync + 'static {
     fn matches(&self, req: &Request) -> bool;
@@ -260,7 +260,16 @@ where
     StreamBody::new(Box::new(Box::pin(stream)))
 }
 
-pub fn static_service(body: impl Into<Bytes> + Send + 'static) -> impl TowerService<Request, Response = ServiceResponse, Error = ServiceError, Future = ServiceBoxFuture> + Clone + Send + 'static {
+pub fn static_service(
+    body: impl Into<Bytes> + Send + 'static,
+) -> impl TowerService<
+    Request,
+    Response = ServiceResponse,
+    Error = ServiceError,
+    Future = ServiceBoxFuture,
+> + Clone
+       + Send
+       + 'static {
     let body = body.into();
     tower::service_fn(move |_| {
         let body = body.clone();

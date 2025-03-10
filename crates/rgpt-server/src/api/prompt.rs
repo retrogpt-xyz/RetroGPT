@@ -98,7 +98,7 @@ pub async fn prompt(
 
     let resp_stream = cx
         .state
-        .client
+        .openai_client
         .chat()
         .create_stream(request)
         .await?
@@ -217,7 +217,7 @@ async fn generate_chat_name(
 
     let chat_title = cx
         .state
-        .client
+        .openai_client
         .chat()
         .create(request)
         .await?
