@@ -6,8 +6,8 @@ use api::{
     user_session::get_user_session_route,
 };
 use http_body_util::BodyExt;
-use hyper::{body::Body, HeaderMap, StatusCode};
-use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, StaticService};
+use hyper::{body::Body, HeaderMap};
+use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, NOT_FOUND};
 use rgpt_cfg::Context;
 use rgpt_db::{session::Session, Database};
 use tokio::net::TcpListener;
@@ -29,7 +29,8 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
         .with_dyn_route(get_user_chats_route(cx.clone()))
         .with_dyn_route(get_chat_msgs_route(cx.clone()))
         .with_dyn_route(promp_route(cx.clone()))
-        .with_fallback(StaticService::new("404 not found", StatusCode::NOT_FOUND))
+        .with_dyn_route(api::v0_0_1::route(cx.clone()))
+        .with_fallback(NOT_FOUND)
         .serve(listener)
         .await?;
 
