@@ -1,4 +1,4 @@
-FROM rust@sha256:a45bf1f5d9af0a23b26703b3500d70af1abff7f984a7abef5a104b42c02a292b AS backend-builder
+FROM rust@sha256:532bc136da994ffe22cbc0a8df00c936d1a148d9fcb9202361987a4023696bf5 AS backend-builder
 
 WORKDIR /app
 
@@ -59,7 +59,7 @@ COPY frontend/ frontend/
 COPY vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json index.html ./
 RUN npm run build
 
-FROM rust@sha256:a45bf1f5d9af0a23b26703b3500d70af1abff7f984a7abef5a104b42c02a292b AS diesel-builder
+FROM rust@sha256:532bc136da994ffe22cbc0a8df00c936d1a148d9fcb9202361987a4023696bf5 AS diesel-builder
 
 RUN apt-get update && apt-get install -y \
   libssl-dev \
