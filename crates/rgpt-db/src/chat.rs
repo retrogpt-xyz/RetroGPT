@@ -20,12 +20,12 @@ pub struct Chat {
 }
 
 impl Chat {
-    pub async fn n_get_by_id(db: Arc<Database>, id: i32) -> Result<Chat, libserver::ServiceError> {
+    pub async fn get_by_id(db: Arc<Database>, id: i32) -> Result<Chat, libserver::ServiceError> {
         let chat = schema::chats::table.find(id).get_result(db).await?;
         Ok(chat)
     }
 
-    pub async fn n_append_to_chat(
+    pub async fn append_to_chat(
         &self,
         db: Arc<Database>,
         msg: &msg::Msg,
@@ -41,12 +41,12 @@ impl Chat {
         Ok(chat)
     }
 
-    pub async fn n_create(
+    pub async fn create(
         db: Arc<Database>,
         user_id: i32,
         name: Option<String>,
     ) -> Result<Chat, libserver::ServiceError> {
-        NewChat { user_id, name }.n_create(db).await
+        NewChat { user_id, name }.create(db).await
     }
 }
 
@@ -59,7 +59,7 @@ struct NewChat {
 }
 
 impl NewChat {
-    async fn n_create(self, db: Arc<Database>) -> Result<Chat, libserver::ServiceError> {
+    async fn create(self, db: Arc<Database>) -> Result<Chat, libserver::ServiceError> {
         let chat = diesel::insert_into(schema::chats::table)
             .values(self)
             .returning(Chat::as_returning())

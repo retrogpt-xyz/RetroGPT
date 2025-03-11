@@ -67,12 +67,12 @@ pub async fn validate_session(
     };
 
     if session_token == "__default__" {
-        let default_user = User::n_default(db.clone()).await?;
-        let session = Session::n_get_for_user(db.clone(), &default_user).await?;
+        let default_user = User::default(db.clone()).await?;
+        let session = Session::get_for_user(db.clone(), &default_user).await?;
         return Ok(session);
     }
 
-    let session = Session::n_get_by_token(db.clone(), session_token).await?;
+    let session = Session::get_by_token(db.clone(), session_token).await?;
 
     if let Some(user_id) = user_id {
         if session.user_id != user_id {
@@ -81,7 +81,7 @@ pub async fn validate_session(
     }
 
     if !session.validate() {
-        session.n_delete(db.clone()).await?;
+        session.delete(db.clone()).await?;
         Err(InvalidSessionTokenHeader)?
     } else {
         return Ok(session);
