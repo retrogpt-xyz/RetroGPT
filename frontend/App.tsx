@@ -24,7 +24,7 @@ function App() {
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
 
-  const [sessToken, setSessToken] = useState<string | null>(null);
+  const [sessToken, setSessToken] = useState<string>("__default__");
   const [userId, setUserId] = useState<number | null>(null);
 
   const [userOwnedChats, setUserOwnedChats] = useState<
@@ -34,7 +34,7 @@ function App() {
   const displayLoginOpts = false;
 
   const syncUserOwnedChats = async () => {
-    if (!sessToken || !userId) {
+    if (sessToken == "__default__" || !userId) {
       setUserOwnedChats([]);
       return;
     }
@@ -67,11 +67,6 @@ function App() {
 
   const syncMessages = async () => {
     if (!chatId) {
-      setDisplayMessages([]);
-      return;
-    }
-
-    if (!sessToken) {
       setDisplayMessages([]);
       return;
     }
@@ -125,9 +120,7 @@ function App() {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
-    if (sessToken) {
-      headers["X-Session-Token"] = sessToken;
-    }
+    headers["X-Session-Token"] = sessToken;
 
     const response = await fetch("/api/prompt", {
       method: "POST",
@@ -179,7 +172,10 @@ function App() {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-    if (!sessToken) return;
+
+    // if (sessToken == "__default__") {
+    // return;
+    // }
 
     await syncMessages();
 
@@ -264,6 +260,7 @@ function App() {
             <>
               <button
                 onClick={() => {
+                  setSessToken("__default__");
                   googleLogout();
                 }}
               >

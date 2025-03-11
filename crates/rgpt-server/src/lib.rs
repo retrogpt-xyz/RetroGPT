@@ -9,7 +9,7 @@ use http_body_util::BodyExt;
 use hyper::{body::Body, HeaderMap};
 use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, NOT_FOUND};
 use rgpt_cfg::Context;
-use rgpt_db::{session::Session, Database};
+use rgpt_db::{session::Session, user::User, Database};
 use tokio::net::TcpListener;
 
 pub mod api;
@@ -72,6 +72,12 @@ pub async fn validate_session(
         Some(token) => token.to_str()?.to_owned(),
         None => Err(InvalidSessionTokenHeader)?,
     };
+
+    if session_token == "__default__" {
+        let default_user = User::n_default(db.clone()).await?;
+        let session = Session::n_get_for_user(db.clone(), &default_user).await?;
+        return Ok(session);
+    }
 
     let session = Session::n_get_by_token(db.clone(), session_token).await?;
 
