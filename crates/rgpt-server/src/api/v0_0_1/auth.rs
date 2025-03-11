@@ -38,11 +38,11 @@ pub async fn auth(req: libserver::Request, cx: Arc<Context>) -> libserver::Servi
         name,
     } = user_info_response.json().await?;
 
-    let user = if let Ok(user) = User::get_by_google_id(cx.db(), &google_id).await {
+    let user = match User::get_by_google_id(cx.db(), &google_id).await { Ok(user) => {
         user
-    } else {
+    } _ => {
         User::create(cx.db(), google_id, email, name).await?
-    };
+    }};
 
     let session = Session::get_for_user(cx.db(), &user).await?;
 
