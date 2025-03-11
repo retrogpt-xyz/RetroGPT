@@ -69,18 +69,18 @@ pub async fn prompt(
 
     let (_session, chat) = match prompt_body.chatId {
         Some(id) => {
-            let chat = Chat::n_get_by_id(cx.db(), id).await?;
+            let chat = Chat::get_by_id(cx.db(), id).await?;
             let session = validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
             (session, chat)
         }
         None => {
             let session = validate_session(cx.db(), &headers, None).await?;
-            let chat = Chat::n_create(cx.db(), session.user_id, None).await?;
+            let chat = Chat::create(cx.db(), session.user_id, None).await?;
             (session, chat)
         }
     };
 
-    let user_msg = Msg::n_create(
+    let user_msg = Msg::create(
         cx.db(),
         prompt_body.text,
         "user".into(),
@@ -88,7 +88,7 @@ pub async fn prompt(
         chat.head_msg,
     )
     .await?;
-    let chat = chat.n_append_to_chat(cx.db(), &user_msg).await?;
+    let chat = chat.append_to_chat(cx.db(), &user_msg).await?;
 
     let msgs = super::chat_msgs::get_chat_message_chain(cx.db(), &chat).await?;
 
@@ -176,8 +176,8 @@ async fn buffer_response(
         buf.push_str(&chunk);
     }
 
-    let ai_msg = Msg::n_create(cx.db(), buf, "ai".into(), chat.user_id, chat.head_msg).await?;
-    let chat = chat.n_append_to_chat(cx.db(), &ai_msg).await?;
+    let ai_msg = Msg::create(cx.db(), buf, "ai".into(), chat.user_id, chat.head_msg).await?;
+    let chat = chat.append_to_chat(cx.db(), &ai_msg).await?;
 
     if needs_title {
         generate_chat_name(cx.clone(), chat, user_msg, ai_msg).await?;

@@ -18,7 +18,7 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn n_get_by_token(
+    pub async fn get_by_token(
         db: Arc<Database>,
         token: String,
     ) -> Result<Session, libserver::ServiceError> {
@@ -29,7 +29,7 @@ impl Session {
         Ok(session)
     }
 
-    pub async fn n_delete(self, db: Arc<Database>) -> Result<(), libserver::ServiceError> {
+    pub async fn delete(self, db: Arc<Database>) -> Result<(), libserver::ServiceError> {
         diesel::delete(schema::sessions::table.find(self.session_token))
             .execute(db)
             .await?;
@@ -40,7 +40,7 @@ impl Session {
         expires_at_is_valid(&self.expires_at)
     }
 
-    pub async fn n_create(
+    pub async fn create(
         db: Arc<Database>,
         user_id: i32,
     ) -> Result<Session, libserver::ServiceError> {
@@ -52,11 +52,11 @@ impl Session {
             expires_at,
             session_token,
         }
-        .n_create(db)
+        .create(db)
         .await
     }
 
-    pub async fn n_get_for_user(
+    pub async fn get_for_user(
         db: Arc<Database>,
         user: &User,
     ) -> Result<Session, libserver::ServiceError> {
@@ -70,11 +70,11 @@ impl Session {
             if session.validate() {
                 return Ok(session);
             } else {
-                session.n_delete(db.clone()).await?
+                session.delete(db.clone()).await?
             }
         }
 
-        Session::n_create(db, user.user_id).await
+        Session::create(db, user.user_id).await
     }
 }
 
@@ -88,7 +88,7 @@ struct NewSession {
 }
 
 impl NewSession {
-    pub async fn n_create(self, db: Arc<Database>) -> Result<Session, libserver::ServiceError> {
+    pub async fn create(self, db: Arc<Database>) -> Result<Session, libserver::ServiceError> {
         let session = diesel::insert_into(schema::sessions::table)
             .values(self)
             .returning(Session::as_returning())

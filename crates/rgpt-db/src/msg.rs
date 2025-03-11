@@ -18,12 +18,12 @@ pub struct Msg {
 }
 
 impl Msg {
-    pub async fn n_get_by_id(db: Arc<Database>, id: i32) -> Result<Msg, libserver::ServiceError> {
+    pub async fn get_by_id(db: Arc<Database>, id: i32) -> Result<Msg, libserver::ServiceError> {
         let msg = schema::msgs::table.find(id).get_result::<Msg>(db).await?;
         Ok(msg)
     }
 
-    pub async fn n_create(
+    pub async fn create(
         db: Arc<Database>,
         body: String,
         sender: String,
@@ -36,18 +36,18 @@ impl Msg {
             user_id,
             parent_message_id,
         }
-        .n_create(db)
+        .create(db)
         .await
     }
 
-    pub async fn n_get_msg_chain(
+    pub async fn get_msg_chain(
         self,
         db: Arc<Database>,
     ) -> Result<Vec<Msg>, libserver::ServiceError> {
         match self.parent_message_id {
             Some(id) => {
-                let parent = Msg::n_get_by_id(db.clone(), id).await?;
-                let mut parents = Box::pin(parent.n_get_msg_chain(db.clone())).await?;
+                let parent = Msg::get_by_id(db.clone(), id).await?;
+                let mut parents = Box::pin(parent.get_msg_chain(db.clone())).await?;
                 parents.push(self);
                 Ok(parents)
             }
@@ -67,7 +67,7 @@ struct NewMsg {
 }
 
 impl NewMsg {
-    async fn n_create(self, db: Arc<Database>) -> Result<Msg, libserver::ServiceError> {
+    async fn create(self, db: Arc<Database>) -> Result<Msg, libserver::ServiceError> {
         let msg = diesel::insert_into(schema::msgs::table)
             .values(self)
             .returning(Msg::as_returning())

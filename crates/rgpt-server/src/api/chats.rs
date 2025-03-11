@@ -49,12 +49,12 @@ pub async fn get_user_chats(
     let user_id = body.parse::<i32>()?;
     let session = crate::validate_session(cx.db(), &headers, Some(user_id)).await?;
 
-    let user = User::n_get_by_id(cx.db(), user_id).await?;
+    let user = User::get_by_id(cx.db(), user_id).await?;
 
     let mut user_chats: Vec<serde_json::Value> = vec![];
 
     if session.user_id != 1 {
-        user_chats.extend(user.n_get_chats(cx.db()).await?.into_iter().map(|chat| {
+        user_chats.extend(user.get_chats(cx.db()).await?.into_iter().map(|chat| {
             json!({
                 "id": chat.id,
                 "name": chat.name.unwrap_or("Untitled Chat".into())

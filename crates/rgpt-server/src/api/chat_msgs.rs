@@ -51,7 +51,7 @@ pub async fn get_chat_msgs(
     let headers = req.headers().to_owned();
     let body = crate::collect_body_string(req).await?;
     let chat_id = body.parse::<i32>()?;
-    let chat = Chat::n_get_by_id(cx.db(), chat_id).await?;
+    let chat = Chat::get_by_id(cx.db(), chat_id).await?;
     let _session = crate::validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
 
     let msgs = get_chat_message_chain(cx.db(), &chat)
@@ -78,9 +78,9 @@ pub async fn get_chat_message_chain(
 ) -> Result<Vec<Msg>, libserver::ServiceError> {
     Ok(match chat.head_msg {
         Some(msg_id) => {
-            Msg::n_get_by_id(db.clone(), msg_id)
+            Msg::get_by_id(db.clone(), msg_id)
                 .await?
-                .n_get_msg_chain(db.clone())
+                .get_msg_chain(db.clone())
                 .await?
         }
         None => vec![],

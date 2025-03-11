@@ -19,7 +19,7 @@ pub struct User {
 }
 
 impl User {
-    pub async fn n_get_by_id(
+    pub async fn get_by_id(
         db: Arc<Database>,
         user_id: i32,
     ) -> Result<User, libserver::ServiceError> {
@@ -31,7 +31,7 @@ impl User {
         Ok(user)
     }
 
-    pub async fn n_get_by_google_id(
+    pub async fn get_by_google_id(
         db: Arc<Database>,
         google_id: &str,
     ) -> Result<User, libserver::ServiceError> {
@@ -42,7 +42,7 @@ impl User {
         Ok(user)
     }
 
-    pub async fn n_create(
+    pub async fn create(
         db: Arc<Database>,
         google_id: String,
         email: String,
@@ -53,11 +53,11 @@ impl User {
             email,
             name,
         }
-        .n_create(db)
+        .create(db)
         .await
     }
 
-    pub async fn n_get_chats(
+    pub async fn get_chats(
         &self,
         db: Arc<Database>,
     ) -> Result<Vec<chat::Chat>, libserver::ServiceError> {
@@ -68,7 +68,7 @@ impl User {
         Ok(chats)
     }
 
-    pub async fn n_default(db: Arc<Database>) -> Result<User, libserver::ServiceError> {
+    pub async fn default(db: Arc<Database>) -> Result<User, libserver::ServiceError> {
         let user = schema::users::table.find(1).get_result(db).await?;
         Ok(user)
     }
@@ -83,7 +83,7 @@ struct NewUser {
 }
 
 impl NewUser {
-    async fn n_create(self, db: Arc<Database>) -> Result<User, libserver::ServiceError> {
+    async fn create(self, db: Arc<Database>) -> Result<User, libserver::ServiceError> {
         let user = diesel::insert_into(schema::users::table)
             .values(self)
             .returning(User::as_returning())
