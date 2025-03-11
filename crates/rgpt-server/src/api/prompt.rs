@@ -15,7 +15,7 @@ use serde::Deserialize;
 
 use crate::validate_session;
 
-pub fn promp_route(cx: Arc<Context>) -> DynRoute {
+pub fn prompt_route(cx: Arc<Context>) -> DynRoute {
     Route::from_parts(PathEqRouter::new("/api/prompt"), PromptService::new(cx)).make_dyn()
 }
 
