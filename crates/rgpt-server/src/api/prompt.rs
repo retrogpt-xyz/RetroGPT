@@ -15,7 +15,7 @@ use serde::Deserialize;
 
 use crate::validate_session;
 
-pub fn promp_route(cx: Arc<Context>) -> DynRoute {
+pub fn prompt_route(cx: Arc<Context>) -> DynRoute {
     Route::from_parts(PathEqRouter::new("/api/prompt"), PromptService::new(cx)).make_dyn()
 }
 
@@ -98,7 +98,7 @@ pub async fn prompt(
 
     let resp_stream = cx
         .state
-        .client
+        .openai_client
         .chat()
         .create_stream(request)
         .await?
@@ -217,7 +217,7 @@ async fn generate_chat_name(
 
     let chat_title = cx
         .state
-        .client
+        .openai_client
         .chat()
         .create(request)
         .await?

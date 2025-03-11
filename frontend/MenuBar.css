@@ -54,7 +54,9 @@
 .popup-window {
   background: #c0c0c0;
   border: 3px outset #808080;
-  position: fixed 150px,100px;
+  position:
+    fixed 150px,
+    100px;
   width: 300px;
   padding: 10px;
   box-shadow: 5px 5px 0px #404040;

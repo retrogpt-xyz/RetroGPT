@@ -33,7 +33,10 @@ impl Context {
 pub struct SharedState {
     /// Connection to the DB
     pub db: Arc<Database>,
-    pub client: async_openai::Client<OpenAIConfig>,
+
+    pub openai_client: async_openai::Client<OpenAIConfig>,
+
+    pub reqwest_client: reqwest::Client,
 }
 
 impl SharedState {
@@ -41,11 +44,12 @@ impl SharedState {
         let db = Database::establish_arc().await;
 
         let api_key = env::var("OPENAI_API_KEY")?;
-        let client = async_openai::Client::with_config(
+        let openai_client = async_openai::Client::with_config(
             async_openai::config::OpenAIConfig::new().with_api_key(api_key),
         );
+        let reqwest_client = reqwest::Client::new();
 
-        Ok(SharedState { db, client })
+        Ok(SharedState { db, openai_client , reqwest_client})
     }
 }
 

@@ -1,15 +1,11 @@
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
-use api::{
-    auth::auth_route, chat_msgs::get_chat_msgs_route, chats::get_user_chats_route,
-    default_session::get_default_session_route, prompt::promp_route,
-    user_session::get_user_session_route,
-};
+use api::{chat_msgs::get_chat_msgs_route, chats::get_user_chats_route, prompt::prompt_route};
 use http_body_util::BodyExt;
-use hyper::{body::Body, HeaderMap, StatusCode};
-use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, StaticService};
+use hyper::{body::Body, HeaderMap};
+use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, NOT_FOUND};
 use rgpt_cfg::Context;
-use rgpt_db::{session::Session, Database};
+use rgpt_db::{session::Session, user::User, Database};
 use tokio::net::TcpListener;
 
 pub mod api;
@@ -23,13 +19,11 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
 
     ServiceBuilder::new()
         .with_dyn_route(static_asset_route(cx.static_dir()))
-        .with_dyn_route(get_default_session_route(cx.db()))
-        .with_dyn_route(get_user_session_route(cx.clone()))
-        .with_dyn_route(auth_route(cx.clone()))
         .with_dyn_route(get_user_chats_route(cx.clone()))
         .with_dyn_route(get_chat_msgs_route(cx.clone()))
-        .with_dyn_route(promp_route(cx.clone()))
-        .with_fallback(StaticService::new("404 not found", StatusCode::NOT_FOUND))
+        .with_dyn_route(prompt_route(cx.clone()))
+        .with_dyn_route(api::v0_0_1::route(cx.clone()))
+        .with_fallback(NOT_FOUND)
         .serve(listener)
         .await?;
 
@@ -71,6 +65,12 @@ pub async fn validate_session(
         Some(token) => token.to_str()?.to_owned(),
         None => Err(InvalidSessionTokenHeader)?,
     };
+
+    if session_token == "__default__" {
+        let default_user = User::n_default(db.clone()).await?;
+        let session = Session::n_get_for_user(db.clone(), &default_user).await?;
+        return Ok(session);
+    }
 
     let session = Session::n_get_by_token(db.clone(), session_token).await?;
 

@@ -19,12 +19,15 @@ pub type BoxedBodyStream = Box<dyn Stream<Item = BodyInner> + Send + Unpin + 'st
 
 pub type ServiceResponse = Response<StreamBody<BoxedBodyStream>>;
 pub type ServiceError = Box<dyn std::error::Error + Send + Sync>;
-pub type ServiceBoxFuture =
-    Pin<Box<dyn Future<Output = Result<ServiceResponse, ServiceError>> + Send + 'static>>;
+pub type ServiceResult = Result<ServiceResponse, ServiceError>;
+pub type ServiceBoxFuture = Pin<Box<dyn Future<Output = ServiceResult> + Send + 'static>>;
 
 pub type DynRouter = Arc<dyn Router>;
 pub type DynService = BoxCloneSyncService<Request, ServiceResponse, ServiceError>;
 pub type DynRoute = Route<DynRouter, DynService>;
+
+pub const NOT_FOUND: StaticService<&str> =
+    StaticService::new("404 Not Found", StatusCode::NOT_FOUND);
 
 pub trait Router: Send + Sync + 'static {
     fn matches(&self, req: &Request) -> bool;
@@ -72,6 +75,24 @@ impl PathEqRouter {
 impl Router for PathEqRouter {
     fn matches(&self, req: &Request) -> bool {
         req.uri().path() == self.path
+    }
+}
+
+pub struct PathPrefixRouter {
+    prefix: String,
+}
+
+impl PathPrefixRouter {
+    pub fn new(prefix: impl Into<String>) -> PathPrefixRouter {
+        PathPrefixRouter {
+            prefix: prefix.into(),
+        }
+    }
+}
+
+impl Router for PathPrefixRouter {
+    fn matches(&self, req: &Request) -> bool {
+        req.uri().path().starts_with(&self.prefix)
     }
 }
 
@@ -239,6 +260,24 @@ where
     StreamBody::new(Box::new(Box::pin(stream)))
 }
 
+pub fn static_service(
+    body: impl Into<Bytes> + Send + 'static,
+) -> impl TowerService<
+    Request,
+    Response = ServiceResponse,
+    Error = ServiceError,
+    Future = ServiceBoxFuture,
+> + Clone
+       + Send
+       + 'static {
+    let body = body.into();
+    tower::service_fn(move |_| {
+        let body = body.clone();
+        let fut = async move { Ok(Response::new(single_frame_body(body))) };
+        Box::pin(fut) as ServiceBoxFuture
+    })
+}
+
 #[derive(Clone)]
 pub struct StaticService<T> {
     body: T,
@@ -246,7 +285,7 @@ pub struct StaticService<T> {
 }
 
 impl<T> StaticService<T> {
-    pub fn new(body: T, status: StatusCode) -> Self {
+    pub const fn new(body: T, status: StatusCode) -> Self {
         Self { body, status }
     }
 }
