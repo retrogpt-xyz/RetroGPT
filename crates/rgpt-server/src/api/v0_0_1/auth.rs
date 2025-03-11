@@ -30,13 +30,13 @@ pub async fn auth(req: libserver::Request, cx: Arc<Context>) -> libserver::Servi
         .await?;
 
     // TODO: Better solution to this???
-    debug_assert!(user_info_response.status() == 200);
+    debug_assert!(dbg!(user_info_response.status()) == 200);
 
     let GoogleUserInfo {
-        google_id,
+        id: google_id,
         email,
         name,
-    } = user_info_response.json::<GoogleUserInfo>().await?;
+    } = user_info_response.json().await?;
 
     let user = if let Ok(user) = User::n_get_by_google_id(cx.db(), &google_id).await {
         user
@@ -46,7 +46,7 @@ pub async fn auth(req: libserver::Request, cx: Arc<Context>) -> libserver::Servi
 
     let session = Session::n_get_for_user(cx.db(), &user).await?;
 
-    let return_body = AuthServiceReturn::new(&session.session_token);
+    let return_body = AuthServiceReturn::new(&session.session_token, user.user_id);
 
     Ok(hyper::Response::new(single_frame_body(
         serde_json::to_string(&return_body)?,
@@ -56,17 +56,21 @@ pub async fn auth(req: libserver::Request, cx: Arc<Context>) -> libserver::Servi
 #[derive(Serialize)]
 struct AuthServiceReturn<'a> {
     session_token: &'a str,
+    user_id: i32,
 }
 
 impl<'a> AuthServiceReturn<'a> {
-    fn new(session_token: &'a str) -> Self {
-        AuthServiceReturn { session_token }
+    fn new(session_token: &'a str, user_id: i32) -> Self {
+        AuthServiceReturn {
+            session_token,
+            user_id,
+        }
     }
 }
 
 #[derive(Deserialize)]
 struct GoogleUserInfo {
-    google_id: String,
+    id: String,
     email: String,
     name: String,
 }
