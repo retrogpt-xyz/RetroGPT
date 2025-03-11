@@ -24,7 +24,7 @@ export async function auth(
 
     return {
       sessionToken: response.data.session_token,
-      userId: response.data.user_id
+      userId: response.data.user_id,
     };
   } catch (error) {
     console.error("Authentication error:", error);

@@ -35,4 +35,4 @@ must have the following env vars defined:
 
 additionally for prod build only:
 
-- `HOSTNAME` 
+- `HOSTNAME`
