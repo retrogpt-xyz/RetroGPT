@@ -71,12 +71,13 @@ function App() {
       return;
     }
 
-    fetch("/api/chat/messages", {
+    fetch("/api/v0.0.1/chat_msgs", {
       method: "POST",
       headers: {
         "X-Session-Token": sessToken,
+        "Content-Type": "application/json",
       },
-      body: chatId.toString(),
+      body: JSON.stringify({ chat_id: chatId }),
     }).then(async (resp) => {
       const msgs: DisplayMessage[] = JSON.parse(await resp.text());
       console.log(msgs);

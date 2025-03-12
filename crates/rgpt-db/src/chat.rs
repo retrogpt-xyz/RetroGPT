@@ -2,10 +2,14 @@ use std::sync::Arc;
 
 use chrono::NaiveDateTime;
 use diesel::{
-    prelude::Insertable, ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper,
+    ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper, prelude::Insertable,
 };
 
-use crate::{msg, schema, Database, RunQueryDsl};
+use crate::{
+    Database, RunQueryDsl,
+    msg::{self, Msg},
+    schema,
+};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::chats)]
@@ -47,6 +51,20 @@ impl Chat {
         name: Option<String>,
     ) -> Result<Chat, libserver::ServiceError> {
         NewChat { user_id, name }.create(db).await
+    }
+
+    pub async fn msg_chain(&self, db: Arc<Database>) -> Result<Vec<Msg>, libserver::ServiceError> {
+        let msgs = match self.head_msg {
+            Some(msg_id) => {
+                Msg::get_by_id(db.clone(), msg_id)
+                    .await?
+                    .get_msg_chain(db.clone())
+                    .await?
+            }
+            None => vec![],
+        };
+
+        Ok(msgs)
     }
 }
 

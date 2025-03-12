@@ -49,7 +49,11 @@ impl SharedState {
         );
         let reqwest_client = reqwest::Client::new();
 
-        Ok(SharedState { db, openai_client , reqwest_client})
+        Ok(SharedState {
+            db,
+            openai_client,
+            reqwest_client,
+        })
     }
 }
 

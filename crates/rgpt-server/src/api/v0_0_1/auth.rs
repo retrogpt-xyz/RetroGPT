@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
+use libserver::{DynRoute, PathEqRouter, Route, single_frame_body};
 use rgpt_cfg::Context;
 use rgpt_db::{session::Session, user::User};
 use serde::{Deserialize, Serialize};
@@ -38,11 +38,10 @@ pub async fn auth(req: libserver::Request, cx: Arc<Context>) -> libserver::Servi
         name,
     } = user_info_response.json().await?;
 
-    let user = match User::get_by_google_id(cx.db(), &google_id).await { Ok(user) => {
-        user
-    } _ => {
-        User::create(cx.db(), google_id, email, name).await?
-    }};
+    let user = match User::get_by_google_id(cx.db(), &google_id).await {
+        Ok(user) => user,
+        _ => User::create(cx.db(), google_id, email, name).await?,
+    };
 
     let session = Session::get_for_user(cx.db(), &user).await?;
 
