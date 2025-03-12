@@ -90,7 +90,7 @@ pub async fn prompt(
     .await?;
     let chat = chat.append_to_chat(cx.db(), &user_msg).await?;
 
-    let msgs = super::chat_msgs::get_chat_message_chain(cx.db(), &chat).await?;
+    let msgs = chat.msg_chain(cx.db()).await?;
 
     let request = create_chat_request(msgs, cx.clone())?;
 

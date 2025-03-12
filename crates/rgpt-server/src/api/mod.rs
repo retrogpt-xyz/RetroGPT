@@ -1,4 +1,3 @@
-pub mod chat_msgs;
 pub mod chats;
 pub mod prompt;
 

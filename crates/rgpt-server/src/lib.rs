@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
-use api::{chat_msgs::get_chat_msgs_route, chats::get_user_chats_route, prompt::prompt_route};
+use api::{chats::get_user_chats_route, prompt::prompt_route};
 use http_body_util::BodyExt;
 use hyper::{HeaderMap, body::Body};
 use libserver::{DynRoute, NOT_FOUND, Route, ServiceBuilder, StaticDirRouter};
@@ -20,7 +20,6 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
     ServiceBuilder::new()
         .with_dyn_route(static_asset_route(cx.static_dir()))
         .with_dyn_route(get_user_chats_route(cx.clone()))
-        .with_dyn_route(get_chat_msgs_route(cx.clone()))
         .with_dyn_route(prompt_route(cx.clone()))
         .with_dyn_route(api::v0_0_1::route(cx.clone()))
         .with_fallback(NOT_FOUND)
