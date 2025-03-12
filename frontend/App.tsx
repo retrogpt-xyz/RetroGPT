@@ -71,7 +71,7 @@ function App() {
       return;
     }
 
-    fetch("/api/chat/messages", {
+    fetch("/api/v0.0.1/chat_msgs", {
       method: "POST",
       headers: {
         "X-Session-Token": sessToken,

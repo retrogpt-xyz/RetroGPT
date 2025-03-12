@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
-    let router = PathEqRouter::new("/api/v0.0.1/auth");
+    let router = PathEqRouter::new("/api/v0.0.1/chat_msgs");
 
     Route::from_parts(router, ChatMsgService::new(cx)).make_dyn()
 }
