@@ -4,6 +4,7 @@ use libserver::{DynRoute, NOT_FOUND, PathPrefixRouter, Route, ServiceBuilder};
 use rgpt_cfg::Context;
 
 pub mod auth;
+pub mod chat_msgs;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
     let router = PathPrefixRouter::new("/api/v0.0.1");
