@@ -4,13 +4,13 @@ use bytes::Bytes;
 use futures::{Stream, TryFutureExt};
 use http_body_util::StreamBody;
 use hyper::{
+    Response, StatusCode,
     body::{Frame, Incoming},
     server::conn::http1,
-    Response, StatusCode,
 };
 use hyper_util::{rt::TokioIo, service::TowerToHyperService};
 use tokio::net::TcpListener;
-use tower::{util::BoxCloneSyncService, Service as TowerService};
+use tower::{Service as TowerService, util::BoxCloneSyncService};
 
 pub type Request = hyper::Request<Incoming>;
 
@@ -117,13 +117,13 @@ impl<R, S> Route<R, S> {
 }
 
 impl<
-        R: Router,
-        S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
-            + Send
-            + Sync
-            + Clone
-            + 'static,
-    > Route<R, S>
+    R: Router,
+    S: TowerService<Request, Response = ServiceResponse, Error = ServiceError>
+        + Send
+        + Sync
+        + Clone
+        + 'static,
+> Route<R, S>
 where
     S::Future: Send + 'static,
 {
@@ -268,8 +268,8 @@ pub fn static_service(
     Error = ServiceError,
     Future = ServiceBoxFuture,
 > + Clone
-       + Send
-       + 'static {
++ Send
++ 'static {
     let body = body.into();
     tower::service_fn(move |_| {
         let body = body.clone();

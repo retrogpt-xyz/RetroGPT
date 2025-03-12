@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use chrono::NaiveDateTime;
 use diesel::{
-    prelude::Insertable, ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper,
+    ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper, prelude::Insertable,
 };
 
-use crate::{msg, schema, Database, RunQueryDsl};
+use crate::{Database, RunQueryDsl, msg, schema};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::chats)]

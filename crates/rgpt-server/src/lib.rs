@@ -2,10 +2,10 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
 use api::{chat_msgs::get_chat_msgs_route, chats::get_user_chats_route, prompt::prompt_route};
 use http_body_util::BodyExt;
-use hyper::{body::Body, HeaderMap};
-use libserver::{DynRoute, Route, ServiceBuilder, StaticDirRouter, NOT_FOUND};
+use hyper::{HeaderMap, body::Body};
+use libserver::{DynRoute, NOT_FOUND, Route, ServiceBuilder, StaticDirRouter};
 use rgpt_cfg::Context;
-use rgpt_db::{session::Session, user::User, Database};
+use rgpt_db::{Database, session::Session, user::User};
 use tokio::net::TcpListener;
 
 pub mod api;

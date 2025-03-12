@@ -6,11 +6,11 @@ use async_openai::types::{
     CreateChatCompletionRequest, CreateChatCompletionRequestArgs,
 };
 use diesel::{ExpressionMethods, QueryDsl};
-use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
+use futures::{StreamExt, channel::mpsc::UnboundedReceiver};
 use hyper::{Response, StatusCode};
-use libserver::{make_body_from_stream, make_frame, DynRoute, PathEqRouter, Route};
+use libserver::{DynRoute, PathEqRouter, Route, make_body_from_stream, make_frame};
 use rgpt_cfg::Context;
-use rgpt_db::{chat::Chat, msg::Msg, RunQueryDsl};
+use rgpt_db::{RunQueryDsl, chat::Chat, msg::Msg};
 use serde::Deserialize;
 
 use crate::validate_session;
@@ -134,10 +134,12 @@ fn create_chat_request(
     msgs: Vec<Msg>,
     cx: Arc<Context>,
 ) -> Result<CreateChatCompletionRequest, libserver::ServiceError> {
-    let built_msgs = vec![ChatCompletionRequestSystemMessageArgs::default()
-        .content(cx.config.system_message.clone())
-        .build()?
-        .into()]
+    let built_msgs = vec![
+        ChatCompletionRequestSystemMessageArgs::default()
+            .content(cx.config.system_message.clone())
+            .build()?
+            .into(),
+    ]
     .into_iter()
     .chain(msgs.into_iter().filter_map(|msg| {
         match msg.sender.as_str() {

@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{
-    prelude::Insertable, ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper,
+    ExpressionMethods, QueryDsl, Queryable, Selectable, SelectableHelper, prelude::Insertable,
 };
 
-use crate::{schema, user::User, Database, RunQueryDsl};
+use crate::{Database, RunQueryDsl, schema, user::User};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::sessions)]

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hyper::{Response, StatusCode};
-use libserver::{single_frame_body, DynRoute, PathEqRouter, Route};
+use libserver::{DynRoute, PathEqRouter, Route, single_frame_body};
 use rgpt_cfg::Context;
 use rgpt_db::{chat::Chat, msg::Msg};
 use serde_json::json;

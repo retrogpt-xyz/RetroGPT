@@ -1,11 +1,11 @@
 use futures::{Stream, StreamExt};
 use hyper::{
+    Response, StatusCode,
     body::{Bytes, Frame},
     header::CONTENT_TYPE,
-    Response, StatusCode,
 };
 use libserver::{
-    make_body_from_stream, BodyInner, Request, ServiceBoxFuture, ServiceError, ServiceResponse,
+    BodyInner, Request, ServiceBoxFuture, ServiceError, ServiceResponse, make_body_from_stream,
 };
 use std::{io, path::PathBuf};
 use tokio::fs::File;

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use libserver::{DynRoute, PathPrefixRouter, Route, ServiceBuilder, NOT_FOUND};
+use libserver::{DynRoute, NOT_FOUND, PathPrefixRouter, Route, ServiceBuilder};
 use rgpt_cfg::Context;
 
 pub mod auth;
