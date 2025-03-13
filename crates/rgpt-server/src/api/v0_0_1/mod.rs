@@ -5,6 +5,7 @@ use rgpt_cfg::Context;
 
 pub mod auth;
 pub mod chat_msgs;
+pub mod user_chats;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
     let router = PathPrefixRouter::new("/api/v0.0.1");
@@ -12,6 +13,7 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
     let service = ServiceBuilder::new()
         .with_dyn_route(auth::route(cx.clone()))
         .with_dyn_route(chat_msgs::route(cx.clone()))
+        .with_dyn_route(user_chats::route(cx.clone()))
         .with_fallback(NOT_FOUND);
 
     Route::from_parts(router, service).make_dyn()
