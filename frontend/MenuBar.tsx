@@ -5,10 +5,10 @@ interface MenuBarProps {
   chatId: number | null;
   setChatId: (chatId: number | null) => void;
   userOwnedChats: { id: number; name: string }[];
-  setUserOwnedChats: (chats: { id: number; name: string }[]) => void;
   sessToken: string | null;
   login: () => void;
-  setWindowVisible: (visible: boolean) => void; // <-- New prop to control visibility
+  setWindowVisible: (visible: boolean) => void;
+  syncUserOwnedChats: () => void;
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
@@ -18,6 +18,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   sessToken,
   login,
   setWindowVisible,
+  syncUserOwnedChats,
 }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -27,6 +28,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   const handleOpenChat = () => {
+    syncUserOwnedChats(); // Sync the chats before showing the popup
     setShowPopup(true); // Show the chat selection popup
   };
 

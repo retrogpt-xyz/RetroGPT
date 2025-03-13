@@ -38,9 +38,10 @@ function App() {
       setUserOwnedChats([]);
       return;
     }
-    const resp = await fetch("/api/chats", {
+
+    const resp = await fetch("/api/v0.0.1/user_chats", {
       method: "POST",
-      body: userId.toString(),
+      body: JSON.stringify({ user_id: userId }),
       headers: {
         "X-Session-Token": sessToken,
         "Content-Type": "application/json",
@@ -214,10 +215,10 @@ function App() {
               chatId={chatId}
               setChatId={setChatId}
               userOwnedChats={userOwnedChats}
-              setUserOwnedChats={setUserOwnedChats}
               sessToken={sessToken}
-              login={login} // <-- Pass login function
+              login={login}
               setWindowVisible={setWindowVisible}
+              syncUserOwnedChats={syncUserOwnedChats}
             />
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
