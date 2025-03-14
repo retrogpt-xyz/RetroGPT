@@ -1,7 +1,10 @@
-use std::{env, error::Error, path::PathBuf, sync::Arc};
+use std::{error::Error, path::PathBuf, sync::Arc};
 
-use async_openai::config::OpenAIConfig;
 use rgpt_db::Database;
+
+pub mod shared_state;
+
+use shared_state::SharedState;
 
 pub struct Context {
     pub state: SharedState,
@@ -26,34 +29,6 @@ impl Context {
 
     pub fn db(&self) -> Arc<Database> {
         self.state.db.clone()
-    }
-}
-
-/// Shared state between request handler threads
-pub struct SharedState {
-    /// Connection to the DB
-    pub db: Arc<Database>,
-
-    pub openai_client: async_openai::Client<OpenAIConfig>,
-
-    pub reqwest_client: reqwest::Client,
-}
-
-impl SharedState {
-    pub async fn new() -> Result<SharedState, Box<dyn Error>> {
-        let db = Database::establish_arc().await;
-
-        let api_key = env::var("OPENAI_API_KEY")?;
-        let openai_client = async_openai::Client::with_config(
-            async_openai::config::OpenAIConfig::new().with_api_key(api_key),
-        );
-        let reqwest_client = reqwest::Client::new();
-
-        Ok(SharedState {
-            db,
-            openai_client,
-            reqwest_client,
-        })
     }
 }
 
