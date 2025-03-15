@@ -1527,6 +1527,7 @@ dependencies = [
  "async-openai",
  "reqwest",
  "rgpt-db",
+ "rgpt-stream",
 ]
 
 [[package]]
@@ -1560,6 +1561,16 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tower",
+]
+
+[[package]]
+name = "rgpt-stream"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures",
+ "hyper",
+ "tokio",
 ]
 
 [[package]]

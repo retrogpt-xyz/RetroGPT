@@ -1,0 +1,10 @@
+[package]
+name = "rgpt-stream"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+futures.workspace = true
+hyper.workspace = true
+bytes.workspace = true

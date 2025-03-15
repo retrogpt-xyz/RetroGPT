@@ -7,6 +7,7 @@ members = [
   "crates/rgpt-cfg",
   "crates/rgpt-db",
   "crates/rgpt-server",
+  "crates/rgpt-stream",
 ]
 
 [workspace.package]
@@ -19,6 +20,7 @@ libserver = { path = "crates/libserver" }
 rgpt-db = { path = "crates/rgpt-db" }
 rgpt-server = { path = "crates/rgpt-server" }
 rgpt-cfg = { path = "crates/rgpt-cfg" }
+rgpt-stream = { path = "crates/rgpt-stream" }
 
 async-openai = "0.28.0"
 bytes = "1.10.0"
