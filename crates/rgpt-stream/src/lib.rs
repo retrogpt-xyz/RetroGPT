@@ -17,13 +17,13 @@ impl StreamRegistry {
     }
 
     pub fn register(&mut self, id: i32, handle: AttachHandle) {
-        if self.handle_map.get(&id).is_none() {
-            self.handle_map
-                .insert(id, handle)
-                .ok_or(())
-                .expect_err("unreachable")
+        if self.handle_map.get(&id).is_some() {
+            panic!("duplicate ID attempted to register");
         }
-        panic!("should not be duplicate IDs");
+        self.handle_map
+            .insert(id, handle)
+            .ok_or(())
+            .expect_err("unreachable");
     }
 
     pub fn try_attach(&mut self, id: i32) -> Option<mpsc::UnboundedReceiver<Bytes>> {
