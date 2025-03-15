@@ -20,6 +20,29 @@ pub struct SharedState {
 }
 
 impl SharedState {
+    /// Creates a new SharedState instance by initializing its shared resources.
+    ///
+    /// This function asynchronously establishes a database connection, retrieves the
+    /// OpenAI API key from the "OPENAI_API_KEY" environment variable to configure the OpenAI client,
+    /// creates a new HTTP client using Reqwest, and sets up the stream registry. If any of these
+    /// steps fail, an error is returned.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the "OPENAI_API_KEY" environment variable is not set or if establishing
+    /// the database connection fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// # use your_crate::SharedState; // Replace `your_crate` with the actual crate name.
+    /// # async fn run() -> Result<(), Box<dyn Error>> {
+    /// let state = SharedState::new().await?;
+    /// // Use `state` as needed.
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn new() -> Result<SharedState, Box<dyn Error>> {
         let db = Database::establish_arc().await;
 

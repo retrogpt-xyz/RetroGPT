@@ -27,6 +27,27 @@ impl Context {
         self.config.port
     }
 
+    /// Returns a clone of the shared database connection.
+    ///
+    /// Retrieves the database connection stored within the context's state and returns a new reference to it.
+    /// The connection is wrapped in an `Arc`, making it inexpensive to clone.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use your_crate::Context;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     // Create a new context instance asynchronously.
+    ///     let ctx = Context::new().await.unwrap();
+    ///
+    ///     // Retrieve a cloned reference to the database connection.
+    ///     let db = ctx.db();
+    ///
+    ///     // Use `db` as needed in your application.
+    /// }
+    /// ```
     pub fn db(&self) -> Arc<Database> {
         self.state.db.clone()
     }
