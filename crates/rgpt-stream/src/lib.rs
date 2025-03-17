@@ -23,7 +23,9 @@ impl StreamRegistry {
     }
 
     pub fn register(&mut self, id: i32, handle: AttachHandle) -> Option<()> {
-        self.handle_map.get(&id)?;
+        if self.handle_map.contains_key(&id) {
+            return None; // ID already exists, registration failed
+        }
         self.handle_map.insert(id, handle);
         Some(())
     }
