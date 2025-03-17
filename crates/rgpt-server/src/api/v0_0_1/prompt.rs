@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
-    let router = PathEqRouter::new("/api/v0.0.1/user_chats");
+    let router = PathEqRouter::new("/api/v0.0.1/prompt");
 
     Route::from_parts(router, PromptService::new(cx)).make_dyn()
 }
@@ -62,7 +62,13 @@ pub async fn prompt(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
 
     let model_request = create_chat_request(cx.clone(), chat_msgs)?;
 
-    tokio::spawn(stream_model_response(chat.id, model_request, cx.clone()));
+    tokio::spawn(stream_model_response(
+        chat.id,
+        chat.user_id,
+        chat.head_msg,
+        model_request,
+        cx.clone(),
+    ));
 
     let response = serde_json::to_string(&PromptServiceResponse {
         chat_id: chat.id,
@@ -159,6 +165,8 @@ fn create_chat_request(
 
 pub async fn stream_model_response(
     chat_id: i32,
+    user_id: i32,
+    parent_message_id: Option<i32>,
     completion_request: CreateChatCompletionRequest,
     cx: Arc<Context>,
 ) -> Result<(), libserver::ServiceError> {
@@ -201,6 +209,11 @@ pub async fn stream_model_response(
                 tx.unbounded_send(chunk.into())?;
             }
         } else {
+            // here
+            let ai_msg = Msg::create(cx.db(), &buf, "ai", user_id, parent_message_id).await?;
+            let chat = Chat::get_by_id(cx.db(), chat_id).await?;
+            chat.append_to_chat(cx.db(), &ai_msg).await?;
+
             match channel {
                 Ok(_) => return Ok(()),
                 Err(ref mut rx) => {
