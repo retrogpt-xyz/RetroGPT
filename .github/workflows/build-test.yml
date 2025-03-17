@@ -1,4 +1,4 @@
-name: Build Docker Image 
+name: Build Docker Image
 
 on:
   push:
@@ -31,6 +31,6 @@ jobs:
         with:
           context: .
           push: false
-          tags: my-image:latest
+          tags: retrogpt:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
