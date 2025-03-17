@@ -209,6 +209,7 @@ impl Service {
             tokio::spawn(async move {
                 http1::Builder::new()
                     .serve_connection(stream, service)
+                    .with_upgrades()
                     .await
                     .ok();
             });

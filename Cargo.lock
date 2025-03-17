@@ -1528,6 +1528,7 @@ dependencies = [
  "reqwest",
  "rgpt-db",
  "rgpt-stream",
+ "tokio",
 ]
 
 [[package]]
@@ -1555,6 +1556,7 @@ dependencies = [
  "mime_guess",
  "rgpt-cfg",
  "rgpt-db",
+ "rgpt-stream",
  "serde",
  "serde_json",
  "thiserror 2.0.12",

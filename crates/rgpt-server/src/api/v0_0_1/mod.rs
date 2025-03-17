@@ -5,6 +5,7 @@ use rgpt_cfg::Context;
 
 pub mod auth;
 pub mod chat_msgs;
+pub mod prompt;
 pub mod user_chats;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {

@@ -8,4 +8,5 @@ rgpt-db.workspace = true
 rgpt-stream.workspace = true
 
 async-openai.workspace = true
+tokio.workspace = true
 reqwest.workspace = true

@@ -1,12 +1,9 @@
-use std::{
-    env,
-    error::Error,
-    sync::{Arc, Mutex},
-};
+use std::{env, error::Error, sync::Arc};
 
 use async_openai::config::OpenAIConfig;
 use rgpt_db::Database;
 use rgpt_stream::StreamRegistry;
+use tokio::sync::Mutex;
 
 /// Shared state between request handler threads
 pub struct SharedState {
