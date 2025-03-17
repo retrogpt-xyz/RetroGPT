@@ -209,7 +209,6 @@ pub async fn stream_model_response(
                 tx.unbounded_send(chunk.into())?;
             }
         } else {
-            // here
             let ai_msg = Msg::create(cx.db(), &buf, "ai", user_id, parent_message_id).await?;
             let chat = Chat::get_by_id(cx.db(), chat_id).await?;
             chat.append_to_chat(cx.db(), &ai_msg).await?;

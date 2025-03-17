@@ -18,13 +18,10 @@ impl StreamRegistry {
 
     pub fn register(&mut self, id: i32, handle: AttachHandle) -> Option<()> {
         if self.handle_map.get(&id).is_none() {
-            self.handle_map
-                .insert(id, handle)
-                .ok_or(())
-                .expect_err("unreachable");
-            return Some(());
+            return None;
         }
-        return None;
+        self.handle_map.insert(id, handle);
+        return Some(());
     }
 
     pub fn try_attach(&mut self, id: i32) -> Option<mpsc::UnboundedReceiver<Bytes>> {
