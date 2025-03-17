@@ -43,7 +43,7 @@ pub async fn prompt(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
         }
     };
 
-    let user_msg = Msg::create(cx.db(), text, "ai", chat.user_id, chat.head_msg).await?;
+    let user_msg = Msg::create(cx.db(), text, "user", chat.user_id, chat.head_msg).await?;
 
     let chat_title = if is_first_message_in_chat {
         let chat_title = generate_chat_name(cx.clone(), &user_msg).await?;
