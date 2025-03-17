@@ -92,7 +92,7 @@ async fn generate_chat_name(
     let prompt = ChatCompletionRequestUserMessageArgs::default()
         .content(format!(
             r#"
-           Generate a title for the following chat to be displayed. It must be less than 5 words.
+           Generate a title to be displayed for the following chat. It must be less than 5 words.
            Do not respond with anything but the title
 
            Chat Content:
