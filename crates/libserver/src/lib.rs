@@ -137,6 +137,12 @@ pub struct ServiceBuilder {
     routes: Vec<DynRoute>,
 }
 
+impl Default for ServiceBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ServiceBuilder {
     pub fn new() -> ServiceBuilder {
         ServiceBuilder { routes: vec![] }

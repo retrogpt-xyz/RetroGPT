@@ -82,7 +82,7 @@ pub async fn validate_session(
         session.delete(db.clone()).await?;
         Err(InvalidSessionTokenHeader)?
     } else {
-        return Ok(session);
+        Ok(session)
     }
 }
 

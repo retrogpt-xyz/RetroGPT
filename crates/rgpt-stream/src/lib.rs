@@ -9,6 +9,12 @@ pub struct StreamRegistry {
     pub handle_map: HashMap<i32, AttachHandle>,
 }
 
+impl Default for StreamRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StreamRegistry {
     pub fn new() -> Self {
         StreamRegistry {
@@ -17,11 +23,9 @@ impl StreamRegistry {
     }
 
     pub fn register(&mut self, id: i32, handle: AttachHandle) -> Option<()> {
-        if self.handle_map.get(&id).is_none() {
-            return None;
-        }
+        self.handle_map.get(&id)?;
         self.handle_map.insert(id, handle);
-        return Some(());
+        Some(())
     }
 
     pub fn try_attach(&mut self, id: i32) -> Option<mpsc::UnboundedReceiver<Bytes>> {
