@@ -21,12 +21,15 @@ RUN mkdir -p crates/rgpt/src && \
   mkdir -p crates/rgpt-cfg/src && \
   echo "pub fn dummy() {}" > crates/rgpt-cfg/src/lib.rs && \
   mkdir -p crates/rgpt-server/src && \
-  echo "pub fn dummy() {}" > crates/rgpt-server/src/lib.rs
+  echo "pub fn dummy() {}" > crates/rgpt-server/src/lib.rs && \
+  mkdir -p crates/rgpt-stream/src && \
+  echo "pub fn dummy() {}" > crates/rgpt-stream/src/lib.rs
 
 COPY crates/rgpt-db/Cargo.toml crates/rgpt-db/Cargo.toml
 COPY crates/libserver/Cargo.toml crates/libserver/Cargo.toml
 COPY crates/rgpt-cfg/Cargo.toml crates/rgpt-cfg/Cargo.toml
 COPY crates/rgpt-server/Cargo.toml crates/rgpt-server/Cargo.toml
+COPY crates/rgpt-stream/Cargo.toml crates/rgpt-stream/Cargo.toml
 
 RUN cargo build --release
 
@@ -38,12 +41,14 @@ COPY crates/rgpt-db/src crates/rgpt-db/src
 COPY crates/libserver/src crates/libserver/src
 COPY crates/rgpt-cfg/src crates/rgpt-cfg/src
 COPY crates/rgpt-server/src crates/rgpt-server/src
+COPY crates/rgpt-stream/src crates/rgpt-stream/src
 
 RUN touch crates/rgpt/src/main.rs && \
   touch crates/librgpt/src/lib.rs && \
   touch crates/libserver/src/lib.rs && \
   touch crates/rgpt-cfg/src/lib.rs && \
   touch crates/rgpt-server/src/lib.rs && \
+  touch crates/rgpt-stream/src/lib.rs && \
   touch crates/rgpt-db/src/lib.rs 
 
 RUN cargo build --release
