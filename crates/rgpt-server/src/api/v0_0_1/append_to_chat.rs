@@ -9,7 +9,7 @@ use serde::Deserialize;
 use crate::{collect_body_string, validate_session};
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
-    let router = PathEqRouter::new("/api/v0.0.1/auth");
+    let router = PathEqRouter::new("/api/v0.0.1/append_to_chat");
 
     Route::from_parts(router, AppendToChatService::new(cx)).make_dyn()
 }
