@@ -102,21 +102,6 @@ function App() {
     setDisplayMessages([]);
     setChatId(null);
   }, [sessToken]);
-  /*
-  const handleMouseMove = (event: MouseEvent) => {
-    setMousePosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
-  };
-
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-*/
 
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
     const headers: HeadersInit = {
@@ -164,7 +149,6 @@ function App() {
 
     const chatIdHeader = response.headers.get("X-Chat-ID");
 
-    if (chatId) setTimeout(() => syncMessages(), 1000);
     await syncUserOwnedChats();
 
     if (chatIdHeader) {
@@ -174,12 +158,6 @@ function App() {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-
-    // if (sessToken == "__default__") {
-    // return;
-    // }
-
-    await syncMessages();
 
     setDisplayMessages((prev) => [
       ...prev,
