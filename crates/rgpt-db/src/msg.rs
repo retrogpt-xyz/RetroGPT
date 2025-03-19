@@ -25,14 +25,14 @@ impl Msg {
 
     pub async fn create(
         db: Arc<Database>,
-        body: String,
-        sender: String,
+        body: impl Into<String>,
+        sender: impl Into<String>,
         user_id: i32,
         parent_message_id: Option<i32>,
     ) -> Result<Msg, libserver::ServiceError> {
         NewMsg {
-            body,
-            sender,
+            body: body.into(),
+            sender: sender.into(),
             user_id,
             parent_message_id,
         }

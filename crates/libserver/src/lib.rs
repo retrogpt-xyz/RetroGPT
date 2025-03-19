@@ -137,6 +137,12 @@ pub struct ServiceBuilder {
     routes: Vec<DynRoute>,
 }
 
+impl Default for ServiceBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ServiceBuilder {
     pub fn new() -> ServiceBuilder {
         ServiceBuilder { routes: vec![] }
@@ -209,6 +215,7 @@ impl Service {
             tokio::spawn(async move {
                 http1::Builder::new()
                     .serve_connection(stream, service)
+                    .with_upgrades()
                     .await
                     .ok();
             });

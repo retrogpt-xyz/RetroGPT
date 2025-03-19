@@ -13,8 +13,6 @@ use rgpt_cfg::Context;
 use rgpt_db::{RunQueryDsl, chat::Chat, msg::Msg};
 use serde::Deserialize;
 
-use crate::validate_session;
-
 pub fn prompt_route(cx: Arc<Context>) -> DynRoute {
     Route::from_parts(PathEqRouter::new("/api/prompt"), PromptService::new(cx)).make_dyn()
 }
@@ -70,11 +68,11 @@ pub async fn prompt(
     let (_session, chat) = match prompt_body.chatId {
         Some(id) => {
             let chat = Chat::get_by_id(cx.db(), id).await?;
-            let session = validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
+            let session = crate::validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
             (session, chat)
         }
         None => {
-            let session = validate_session(cx.db(), &headers, None).await?;
+            let session = crate::validate_session(cx.db(), &headers, None).await?;
             let chat = Chat::create(cx.db(), session.user_id, None).await?;
             (session, chat)
         }
@@ -83,7 +81,7 @@ pub async fn prompt(
     let user_msg = Msg::create(
         cx.db(),
         prompt_body.text,
-        "user".into(),
+        "user",
         chat.user_id,
         chat.head_msg,
     )
@@ -178,7 +176,7 @@ async fn buffer_response(
         buf.push_str(&chunk);
     }
 
-    let ai_msg = Msg::create(cx.db(), buf, "ai".into(), chat.user_id, chat.head_msg).await?;
+    let ai_msg = Msg::create(cx.db(), buf, "ai", chat.user_id, chat.head_msg).await?;
     let chat = chat.append_to_chat(cx.db(), &ai_msg).await?;
 
     if needs_title {

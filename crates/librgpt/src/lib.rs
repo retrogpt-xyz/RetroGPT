@@ -6,7 +6,7 @@ pub mod startup;
 #[tokio::main]
 pub async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
     // Run startup logic before starting the backend server
-    tokio::task::spawn_blocking(startup::startup).await?;
+    startup::startup();
 
     let cx = rgpt_cfg::Context::new().await?.into();
     rgpt_server::run_server(cx).await
