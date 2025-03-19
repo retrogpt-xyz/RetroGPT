@@ -109,19 +109,27 @@ function App() {
     };
     headers["X-Session-Token"] = sessToken;
 
-    const response = await fetch("/api/prompt", {
+    // Step 1: Create the response stream via the semver'd prompt endpoint
+    const response = await fetch("/api/v0.0.1/prompt", {
       method: "POST",
-      body: JSON.stringify(msg),
+      body: JSON.stringify({
+        text: msg.text,
+        chat_id: msg.chatId,
+      }),
       headers,
     });
 
-    const reader = response.body?.getReader();
-    if (!reader) {
-      console.error("Failed to get reader from response body.");
+    if (!response.ok) {
+      console.error("Failed to create prompt stream");
       return;
     }
-    const decoder = new TextDecoder("utf-8");
-    let aiResponse = "";
+
+    const { chat_id } = await response.json();
+
+    // Step 2: Connect to the WebSocket stream
+    const ws = new WebSocket(
+      `ws://${window.location.host}/api/v0.0.1/attach/${chat_id}`,
+    );
 
     // Append a new message for streaming
     setDisplayMessages((prev) => [
@@ -130,11 +138,11 @@ function App() {
     ]);
 
     const messageIndex = displayMessages.length + 1;
+    let aiResponse = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      aiResponse += decoder.decode(value, { stream: true });
+    ws.onmessage = (event) => {
+      const chunk = event.data;
+      aiResponse += chunk;
 
       // Update the last message with the new data
       setDisplayMessages((prev) => {
@@ -145,15 +153,27 @@ function App() {
         };
         return updatedMessages;
       });
-    }
+    };
 
-    const chatIdHeader = response.headers.get("X-Chat-ID");
+    ws.onclose = async () => {
+      // Step 3: Append the complete response to chat
+      await fetch("/api/v0.0.1/append_to_chat", {
+        method: "POST",
+        body: JSON.stringify({
+          sender: "ai",
+          body: aiResponse,
+          chat_id: chat_id,
+        }),
+        headers,
+      });
 
-    await syncUserOwnedChats();
+      await syncUserOwnedChats();
+      setChatId(chat_id);
+    };
 
-    if (chatIdHeader) {
-      setChatId(parseInt(chatIdHeader));
-    }
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
   };
 
   const handleSendMessage = async () => {
