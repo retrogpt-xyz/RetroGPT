@@ -128,7 +128,7 @@ function App() {
 
     // Step 2: Connect to the WebSocket stream
     const ws = new WebSocket(
-      `ws://${window.location.host}/api/v0.0.1/attach/${chat_id}`,
+      `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/v0.0.1/attach/${chat_id}`,
     );
 
     // Append a new message for streaming
