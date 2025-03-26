@@ -142,7 +142,10 @@ const MenuBar: React.FC<MenuBarProps> = ({
         </div>
 
         {/* Exit Button */}
-        <div className="exit-button">Exit</div>
+        <div 
+        className="exit-button"
+        onClick={() => setWindowVisible(false)}
+        >Exit</div>
       </div>
 
       {/* Popup Window for Chat Selection */}

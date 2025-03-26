@@ -1,7 +1,14 @@
+@font-face {
+  font-family: 'w95-typeface';
+  src: url('https://dl.dafont.com/dl/?f=w95fa');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   margin: 0;
-  font-family: "Courier New", Courier, monospace;
-  background: #808080;
+  font-family: 'w95-typeface';
+  background: #FFFFFF;
   background-size: cover;
   color: #000;
 }
@@ -65,7 +72,7 @@ body {
   border: none;
   color: #fff;
   padding: 10px;
-  font-family: "Courier New", Courier, monospace;
+  font-family: 'w95-typeface';
 }
 
 .controls button:hover {
@@ -117,6 +124,7 @@ button:hover {
 }
 
 .main-window {
+  margin-right: 150px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -176,6 +184,7 @@ button:hover {
 
 .chat-message {
   margin-bottom: 10px;
+  white-space: pre-wrap;
 }
 
 .user-message {
@@ -196,7 +205,7 @@ button:hover {
 .chat-input input {
   flex: 1;
   padding: 5px;
-  font-family: "Courier New", Courier, monospace;
+  font-family: 'w95-typeface';
   border: 2px outset #c0c0c0;
 }
 
@@ -206,7 +215,7 @@ button:hover {
   background: #808080;
   border: 2px outset #c0c0c0;
   color: #fff;
-  font-family: "Courier New", Courier, monospace;
+  font-family: 'w95-typeface';
 }
 
 .chat-input button:hover {
@@ -216,18 +225,33 @@ button:hover {
 .app-column {
   display: flex;
   flex-direction: column;
+  align-content: center;
   gap: 10px;
+  position: fixed; /* Use fixed positioning */
+  right: 20px; /* Move 20px from the right edge */
 }
 
+
 .app-icon {
-  background: url("https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png");
-  background-size: cover;
-  border: 3px solid #808080;
-  width: 75px;
-  height: 75px;
-  box-shadow:
-    2px 2px 0 #fff,
-    -2px -2px 0 #404040;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 5px;
+  cursor: pointer; /* Indicate that the element is clickable */
+  border: none; /* Remove default button border */
+  background: none; /* Remove default button background */
+  padding: 0; /* Remove default button padding */
+}
+
+.app-icon:focus {
+  outline: none; /* Remove focus outline */
+}
+
+.app-icon-label {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  color: #000;
+  text-align: center;
+  word-wrap: break-word;
+  max-width: 75px;
 }
