@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-import MusicPlayer from "./MusicPlayer";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import MenuBar from "./MenuBar";
@@ -32,6 +31,7 @@ interface Profile {
 
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
+  
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -268,7 +268,7 @@ function App() {
   return (
     <div className="retro-wrapper">
       <div>
-        <Dock />
+      <Dock />
       </div>
       
       <div>
@@ -279,15 +279,16 @@ function App() {
       {windowVisible && ( // <-- Conditionally render main window
         <div className="main-window">
           <div>
-            <MenuBar
-              chatId={chatId}
-              setChatId={setChatId}
-              userOwnedChats={userOwnedChats}
-              setUserOwnedChats={setUserOwnedChats}
-              sessToken={sessToken}
-              login={login} // <-- Pass login function
-              setWindowVisible={setWindowVisible}
+          <MenuBar
+      chatId={chatId}
+      setChatId={setChatId}
+      userOwnedChats={userOwnedChats} // Pass the state value, not the setter
+      sessToken={sessToken}
+      login={login}
+      setWindowVisible={setWindowVisible}
+      syncUserOwnedChats={syncUserOwnedChats}
             />
+
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
           <div className="header-under">How can I help?</div>

@@ -1,4 +1,3 @@
-// Dock.tsx
 import { useState } from "react";
 import "./Dockbar.css";
 
@@ -7,12 +6,8 @@ interface DockItem {
   icon: string;
 }
 
-interface Props {
-  onAppSelect: (appName: string) => void;
-}
-
-const Dock = ({ onAppSelect }: Props) => {
-  const [selectedApp, setSelectedApp] = useState<number | null>(null);
+const Dock = () => {
+  const [selectedApp] = useState<number | null>(null);
 
   const dockItems: DockItem[] = [
     {
@@ -27,13 +22,7 @@ const Dock = ({ onAppSelect }: Props) => {
       id: 3,
       icon: "https://64.media.tumblr.com/42e2b6779cbb09f0bf4ec645560be93f/9d46196f98fe3bc0-93/s540x810/6c3f4bf1a3069443c09f0751cb7375e5ebde98a2.png"
     },
-    // Add more dock items as needed fr
   ];
-
-  const handleAppClick = (id: number, icon: string) => {
-    setSelectedApp(id);
-    onAppSelect(icon);
-  };
 
   return (
     <div className="dock-container">
@@ -44,9 +33,8 @@ const Dock = ({ onAppSelect }: Props) => {
             className={`dock-item ${selectedApp === item.id ? "selected" : ""}`}
           >
             <div className="icon">
-              <img src={item.icon} />
+              <img src={item.icon} alt={`App ${item.id}`} />
             </div>
-            <span className="label"></span>
           </div>
         ))}
       </div>
