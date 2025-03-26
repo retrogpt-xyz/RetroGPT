@@ -260,7 +260,7 @@ function App() {
       {/* Right column with app icons */}
       <div className="app-column">
         {displayLoginOpts &&
-          (sessToken ? (
+          (sessToken != "__default__" ? (
             <>
               <button
                 onClick={() => {
