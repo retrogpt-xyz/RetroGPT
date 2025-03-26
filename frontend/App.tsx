@@ -18,14 +18,29 @@ interface BackendQueryMessage {
   sessionToken: string;
 }
 
+interface User {
+  access_token: string;
+}
+
+interface Profile {
+  id: string;
+  picture: string;
+  name: string;
+  email: string;
+}
+
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
+  
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
 
-  const [sessToken, setSessToken] = useState<string>("__default__");
+  const [userAccessToken, setUserAccessToken] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  const [sessToken, setSessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
 
   const [userOwnedChats, setUserOwnedChats] = useState<
@@ -35,14 +50,13 @@ function App() {
   const displayLoginOpts = false;
 
   const syncUserOwnedChats = async () => {
-    if (sessToken == "__default__" || !userId) {
+    if (!sessToken || !userId) {
       setUserOwnedChats([]);
       return;
     }
-
-    const resp = await fetch("/api/v0.0.1/user_chats", {
+    const resp = await fetch("/api/chats", {
       method: "POST",
-      body: JSON.stringify({ user_id: userId }),
+      body: userId.toString(),
       headers: {
         "X-Session-Token": sessToken,
         "Content-Type": "application/json",
@@ -57,14 +71,26 @@ function App() {
     syncUserOwnedChats();
   }, [userId, sessToken, chatId]);
 
+  const getSessionToken = async () => {
+    if (!userId) {
+      const resp = await fetch("/api/get_def_sess", { method: "GET" });
+      const body = await resp.text();
+      setSessToken(body);
+      return;
+    }
+
+    await fetch("/api/session", {
+      method: "POST",
+      body: JSON.stringify(userId),
+    }).then(async (resp) => {
+      const sessionToken = await resp.text();
+      console.log(sessionToken);
+      setSessToken(sessionToken);
+    });
+  };
+
   const login = useGoogleLogin({
-    onSuccess: async (user_access_token) => {
-      const authResult = await auth(user_access_token);
-      if (authResult) {
-        setSessToken(authResult.sessionToken);
-        setUserId(authResult.userId);
-      }
-    },
+    onSuccess: setUserAccessToken,
   });
 
   const syncMessages = async () => {
@@ -73,13 +99,17 @@ function App() {
       return;
     }
 
-    fetch("/api/v0.0.1/chat_msgs", {
+    if (!sessToken) {
+      setDisplayMessages([]);
+      return;
+    }
+
+    fetch("/api/chat/messages", {
       method: "POST",
       headers: {
         "X-Session-Token": sessToken,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ chat_id: chatId }),
+      body: chatId.toString(),
     }).then(async (resp) => {
       const msgs: DisplayMessage[] = JSON.parse(await resp.text());
       console.log(msgs);
@@ -100,6 +130,10 @@ function App() {
   }, [chatId]);
 
   useEffect(() => {
+    getSessionToken();
+  }, [userId]);
+
+  useEffect(() => {
     setDisplayMessages([]);
     setChatId(null);
   }, [sessToken]);
@@ -118,12 +152,48 @@ function App() {
     };
   }, []);
 */
+  useEffect(() => {
+    if (userAccessToken) {
+      axios
+        .get(
+          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${userAccessToken.access_token}`,
+          {
+            headers: {
+              Authorization: `Bearer ${userAccessToken.access_token}`,
+              Accept: "application/json",
+            },
+          },
+        )
+        .then(async (res) => {
+          console.log(res.data);
+          const profile: Profile = res.data;
+          setProfile(profile);
+          const body = {
+            google_id: profile.id,
+            email: profile.email,
+            name: profile.name,
+          };
+
+          await fetch("/api/auth", {
+            method: "POST",
+            body: JSON.stringify(body),
+          }).then(async (resp) => {
+            const user_id: number = JSON.parse(await resp.text());
+            console.log(user_id);
+            setUserId(user_id);
+          });
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [userAccessToken]);
 
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
-    headers["X-Session-Token"] = sessToken;
+    if (sessToken) {
+      headers["X-Session-Token"] = sessToken;
+    }
 
     const response = await fetch("/api/prompt", {
       method: "POST",
@@ -175,10 +245,7 @@ function App() {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-
-    // if (sessToken == "__default__") {
-    // return;
-    // }
+    if (!sessToken) return;
 
     await syncMessages();
 
@@ -221,6 +288,7 @@ function App() {
               setWindowVisible={setWindowVisible}
               syncUserOwnedChats={syncUserOwnedChats}
             />
+
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
           <div className="header-under">How can I help?</div>
@@ -259,11 +327,14 @@ function App() {
       {/* Right column with app icons */}
       <div className="app-column">
         {displayLoginOpts &&
-          (sessToken ? (
+          (profile ? (
             <>
+              <p>{profile.name}</p>
+              <img src={profile.picture} alt="Profile" />
               <button
                 onClick={() => {
-                  setSessToken("__default__");
+                  setProfile(null);
+                  setUserId(null);
                   googleLogout();
                 }}
               >

@@ -7,7 +7,7 @@
 
 body {
   margin: 0;
-  font-family: "w95-typeface";
+  font-family: "w95-typeface";`
   background: #ffffff;
   background-size: cover;
   color: #000;
@@ -230,6 +230,7 @@ button:hover {
   position: fixed; /* Use fixed positioning */
   right: 20px; /* Move 20px from the right edge */
 }
+
 
 .app-icon {
   display: flex;
