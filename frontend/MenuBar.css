@@ -1,7 +1,14 @@
 /* Menu bar */
+@font-face {
+  font-family: 'w95-typeface';
+  src: url('https://dl.dafont.com/dl/?f=w95fa');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .menu-bar {
   display: flex;
-  background: #c0c0c0;
+  background: linear-gradient(to right, rgb(45, 152, 252) , rgb(30, 0, 255));;
   padding: 5px;
   border-bottom: 2px inset #808080;
 }
@@ -77,7 +84,7 @@
   background: #f50101;
   border: 2px outset #808080;
   color: #ffffff;
-  font-family: "Courier New", Courier, monospace;
+  font-family: 'w95-typeface';
   cursor: pointer;
 }
 
@@ -95,4 +102,14 @@
 /* Blur effect when popup is open */
 .blur {
   filter: blur(3px);
+}
+
+.resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  cursor: se-resize;
+  background-color: #808080;
 }
