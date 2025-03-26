@@ -20,7 +20,7 @@ pub async fn chat_msgs(req: Request, cx: Arc<Context>) -> libserver::ServiceResu
 
     let ChatMsgServiceInput { chat_id } = serde_json::from_str(&body)?;
     let chat = Chat::get_by_id(cx.db(), chat_id).await?;
-    let _session = crate::validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
+    let _session = crate::validate_session_header(cx.db(), &headers, Some(chat.user_id)).await?;
 
     let msg = chat.msg_chain(cx.db()).await?;
 

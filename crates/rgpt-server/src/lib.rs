@@ -54,7 +54,7 @@ pub async fn collect_body_string(
     Ok(string)
 }
 
-pub async fn validate_session(
+pub async fn validate_session_header(
     db: Arc<Database>,
     headers: &HeaderMap,
     user_id: Option<i32>,
@@ -64,6 +64,14 @@ pub async fn validate_session(
         None => Err(InvalidSessionTokenHeader)?,
     };
 
+    validate_session_token(db, session_token, user_id).await
+}
+
+pub async fn validate_session_token(
+    db: Arc<Database>,
+    session_token: String,
+    user_id: Option<i32>,
+) -> Result<Session, libserver::ServiceError> {
     if session_token == "__default__" {
         let default_user = User::default(db.clone()).await?;
         let session = Session::get_for_user(db.clone(), &default_user).await?;

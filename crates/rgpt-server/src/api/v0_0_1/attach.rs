@@ -9,7 +9,7 @@ use libserver::{DynRoute, PathPrefixRouter, Request, Route, single_frame_body};
 use rgpt_cfg::Context;
 use rgpt_db::chat::Chat;
 
-use crate::validate_session;
+use crate::validate_session_header;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
     let router = PathPrefixRouter::new("/api/v0.0.1/attach");
@@ -20,7 +20,7 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
 pub async fn attach(req: Request, cx: Arc<Context>) -> libserver::ServiceResult {
     crate::check_body_size(&req, cx.config.max_req_size)?;
     let headers = req.headers().to_owned();
-    validate_session(cx.db(), &headers, None).await?;
+    validate_session_header(cx.db(), &headers, None).await?;
 
     let chat_id = req
         .uri()

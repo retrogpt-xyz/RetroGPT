@@ -68,11 +68,11 @@ pub async fn prompt(
     let (_session, chat) = match prompt_body.chatId {
         Some(id) => {
             let chat = Chat::get_by_id(cx.db(), id).await?;
-            let session = crate::validate_session(cx.db(), &headers, Some(chat.user_id)).await?;
+            let session = crate::validate_session_header(cx.db(), &headers, Some(chat.user_id)).await?;
             (session, chat)
         }
         None => {
-            let session = crate::validate_session(cx.db(), &headers, None).await?;
+            let session = crate::validate_session_header(cx.db(), &headers, None).await?;
             let chat = Chat::create(cx.db(), session.user_id, None).await?;
             (session, chat)
         }

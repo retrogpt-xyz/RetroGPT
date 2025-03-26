@@ -6,7 +6,7 @@ use rgpt_cfg::Context;
 use rgpt_db::{chat::Chat, msg::Msg};
 use serde::Deserialize;
 
-use crate::{collect_body_string, validate_session};
+use crate::{collect_body_string, validate_session_header};
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
     let router = PathEqRouter::new("/api/v0.0.1/append_to_chat");
@@ -17,7 +17,7 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
 pub async fn append_to_chat(req: Request, cx: Arc<Context>) -> libserver::ServiceResult {
     crate::check_body_size(&req, cx.config.max_req_size)?;
     let headers = req.headers().to_owned();
-    validate_session(cx.db(), &headers, None).await?;
+    validate_session_header(cx.db(), &headers, None).await?;
 
     let body = collect_body_string(req).await?;
 
