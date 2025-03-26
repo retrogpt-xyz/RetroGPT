@@ -1,14 +1,14 @@
 @font-face {
-  font-family: 'w95-typeface';
-  src: url('https://dl.dafont.com/dl/?f=w95fa');
+  font-family: "w95-typeface";
+  src: url("https://dl.dafont.com/dl/?f=w95fa");
   font-weight: normal;
   font-style: normal;
 }
 
 body {
   margin: 0;
-  font-family: 'w95-typeface';
-  background: #FFFFFF;
+  font-family: "w95-typeface";
+  background: #ffffff;
   background-size: cover;
   color: #000;
 }
@@ -72,7 +72,7 @@ body {
   border: none;
   color: #fff;
   padding: 10px;
-  font-family: 'w95-typeface';
+  font-family: "w95-typeface";
 }
 
 .controls button:hover {
@@ -205,7 +205,7 @@ button:hover {
 .chat-input input {
   flex: 1;
   padding: 5px;
-  font-family: 'w95-typeface';
+  font-family: "w95-typeface";
   border: 2px outset #c0c0c0;
 }
 
@@ -215,7 +215,7 @@ button:hover {
   background: #808080;
   border: 2px outset #c0c0c0;
   color: #fff;
-  font-family: 'w95-typeface';
+  font-family: "w95-typeface";
 }
 
 .chat-input button:hover {
@@ -230,7 +230,6 @@ button:hover {
   position: fixed; /* Use fixed positioning */
   right: 20px; /* Move 20px from the right edge */
 }
-
 
 .app-icon {
   display: flex;

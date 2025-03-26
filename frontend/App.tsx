@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import "./App.css";
-
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+
+import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import RightClick from "./RightClickMenu";
+import { auth } from "./auth";
 
 interface DisplayMessage {
   text: string;
@@ -18,29 +18,14 @@ interface BackendQueryMessage {
   sessionToken: string;
 }
 
-interface User {
-  access_token: string;
-}
-
-interface Profile {
-  id: string;
-  picture: string;
-  name: string;
-  email: string;
-}
-
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
-  
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
 
-  const [userAccessToken, setUserAccessToken] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-
-  const [sessToken, setSessToken] = useState<string | null>(null);
+  const [sessToken, setSessToken] = useState<string>("__default__");
   const [userId, setUserId] = useState<number | null>(null);
 
   const [userOwnedChats, setUserOwnedChats] = useState<
@@ -50,13 +35,14 @@ function App() {
   const displayLoginOpts = false;
 
   const syncUserOwnedChats = async () => {
-    if (!sessToken || !userId) {
+    if (sessToken == "__default__" || !userId) {
       setUserOwnedChats([]);
       return;
     }
-    const resp = await fetch("/api/chats", {
+
+    const resp = await fetch("/api/v0.0.1/user_chats", {
       method: "POST",
-      body: userId.toString(),
+      body: JSON.stringify({ user_id: userId }),
       headers: {
         "X-Session-Token": sessToken,
         "Content-Type": "application/json",
@@ -71,26 +57,14 @@ function App() {
     syncUserOwnedChats();
   }, [userId, sessToken, chatId]);
 
-  const getSessionToken = async () => {
-    if (!userId) {
-      const resp = await fetch("/api/get_def_sess", { method: "GET" });
-      const body = await resp.text();
-      setSessToken(body);
-      return;
-    }
-
-    await fetch("/api/session", {
-      method: "POST",
-      body: JSON.stringify(userId),
-    }).then(async (resp) => {
-      const sessionToken = await resp.text();
-      console.log(sessionToken);
-      setSessToken(sessionToken);
-    });
-  };
-
   const login = useGoogleLogin({
-    onSuccess: setUserAccessToken,
+    onSuccess: async (user_access_token) => {
+      const authResult = await auth(user_access_token);
+      if (authResult) {
+        setSessToken(authResult.sessionToken);
+        setUserId(authResult.userId);
+      }
+    },
   });
 
   const syncMessages = async () => {
@@ -99,17 +73,13 @@ function App() {
       return;
     }
 
-    if (!sessToken) {
-      setDisplayMessages([]);
-      return;
-    }
-
-    fetch("/api/chat/messages", {
+    fetch("/api/v0.0.1/chat_msgs", {
       method: "POST",
       headers: {
         "X-Session-Token": sessToken,
+        "Content-Type": "application/json",
       },
-      body: chatId.toString(),
+      body: JSON.stringify({ chat_id: chatId }),
     }).then(async (resp) => {
       const msgs: DisplayMessage[] = JSON.parse(await resp.text());
       console.log(msgs);
@@ -130,10 +100,6 @@ function App() {
   }, [chatId]);
 
   useEffect(() => {
-    getSessionToken();
-  }, [userId]);
-
-  useEffect(() => {
     setDisplayMessages([]);
     setChatId(null);
   }, [sessToken]);
@@ -152,48 +118,12 @@ function App() {
     };
   }, []);
 */
-  useEffect(() => {
-    if (userAccessToken) {
-      axios
-        .get(
-          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${userAccessToken.access_token}`,
-          {
-            headers: {
-              Authorization: `Bearer ${userAccessToken.access_token}`,
-              Accept: "application/json",
-            },
-          },
-        )
-        .then(async (res) => {
-          console.log(res.data);
-          const profile: Profile = res.data;
-          setProfile(profile);
-          const body = {
-            google_id: profile.id,
-            email: profile.email,
-            name: profile.name,
-          };
-
-          await fetch("/api/auth", {
-            method: "POST",
-            body: JSON.stringify(body),
-          }).then(async (resp) => {
-            const user_id: number = JSON.parse(await resp.text());
-            console.log(user_id);
-            setUserId(user_id);
-          });
-        })
-        .catch((err) => console.log(err));
-    }
-  }, [userAccessToken]);
 
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
-    if (sessToken) {
-      headers["X-Session-Token"] = sessToken;
-    }
+    headers["X-Session-Token"] = sessToken;
 
     const response = await fetch("/api/prompt", {
       method: "POST",
@@ -245,7 +175,10 @@ function App() {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-    if (!sessToken) return;
+
+    // if (sessToken == "__default__") {
+    // return;
+    // }
 
     await syncMessages();
 
@@ -268,9 +201,9 @@ function App() {
   return (
     <div className="retro-wrapper">
       <div>
-      <Dock />
+        <Dock />
       </div>
-      
+
       <div>
         <RightClick />
       </div>
@@ -279,16 +212,15 @@ function App() {
       {windowVisible && ( // <-- Conditionally render main window
         <div className="main-window">
           <div>
-          <MenuBar
-      chatId={chatId}
-      setChatId={setChatId}
-      userOwnedChats={userOwnedChats} // Pass the state value, not the setter
-      sessToken={sessToken}
-      login={login}
-      setWindowVisible={setWindowVisible}
-      syncUserOwnedChats={syncUserOwnedChats}
+            <MenuBar
+              chatId={chatId}
+              setChatId={setChatId}
+              userOwnedChats={userOwnedChats} // Pass the state value, not the setter
+              sessToken={sessToken}
+              login={login}
+              setWindowVisible={setWindowVisible}
+              syncUserOwnedChats={syncUserOwnedChats}
             />
-
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
           <div className="header-under">How can I help?</div>
@@ -327,14 +259,11 @@ function App() {
       {/* Right column with app icons */}
       <div className="app-column">
         {displayLoginOpts &&
-          (profile ? (
+          (sessToken != "__default__" ? (
             <>
-              <p>{profile.name}</p>
-              <img src={profile.picture} alt="Profile" />
               <button
                 onClick={() => {
-                  setProfile(null);
-                  setUserId(null);
+                  setSessToken("__default__");
                   googleLogout();
                 }}
               >
@@ -358,54 +287,54 @@ function App() {
             ))}
         </div>
         <div className="app-column">
-        {[
-    {
-      url: "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
-      name: "Music",
-    },
-    {
-      url: "https://64.media.tumblr.com/0d181187c50fedc1c60d1a6c3dd2165d/ec299322d93fd773-53/s540x810/afd900c44adfac375f08a490df747be6384c17d6.png",
-      name: "RetroGPT",
-      onClick: () => {
-        setWindowVisible((prev) => !prev); // Toggle window visibility
-      },
-    },
-    {
-      url: "https://64.media.tumblr.com/42e2b6779cbb09f0bf4ec645560be93f/9d46196f98fe3bc0-93/s540x810/6c3f4bf1a3069443c09f0751cb7375e5ebde98a2.png",
-      name: "Pages",
-    },
-    {
-      url: "https://64.media.tumblr.com/ee4555102b26dc11494796658aef2196/2c2dac95a062501a-88/s540x810/14fabdd9ba87d3855cd9e07a4a8e298240c06c32.png",
-      name: "Reader",
-    },
-    {
-      url: "https://64.media.tumblr.com/813967cfcf02a55d9b1d0dfd1aaff757/4dc8e55108cf74d2-d8/s540x810/0108220e0d1be29cd3b35392fe0da2d395e0c2f8.png",
-      name: "Print",
-    },
-    {
-      url: "https://64.media.tumblr.com/3348cb2690edd69e4abef37e181df74d/a805f4b239e74093-b6/s540x810/18d6a7c2de480930d0a2fc78916458fcc4e25b52.png",
-      name: "Finder",
-    },
-  ].map(({ url, name, onClick }, index) => (
-    <button
-      key={index}
-      className="app-icon"
-      onClick={onClick} // Add the click handler
-      style={{ cursor: "pointer", border: "none", background: "none" }} // Remove default button styles
-    >
-      <div
-        style={{
-          backgroundImage: `url(${url})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          width: "75px",
-          height: "75px",
-        }}
-      ></div>
-      <span className="app-icon-label">{name}</span>
-    </button>
-  ))}
-    </div>
+          {[
+            {
+              url: "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
+              name: "Music",
+            },
+            {
+              url: "https://64.media.tumblr.com/0d181187c50fedc1c60d1a6c3dd2165d/ec299322d93fd773-53/s540x810/afd900c44adfac375f08a490df747be6384c17d6.png",
+              name: "RetroGPT",
+              onClick: () => {
+                setWindowVisible((prev) => !prev); // Toggle window visibility
+              },
+            },
+            {
+              url: "https://64.media.tumblr.com/42e2b6779cbb09f0bf4ec645560be93f/9d46196f98fe3bc0-93/s540x810/6c3f4bf1a3069443c09f0751cb7375e5ebde98a2.png",
+              name: "Pages",
+            },
+            {
+              url: "https://64.media.tumblr.com/ee4555102b26dc11494796658aef2196/2c2dac95a062501a-88/s540x810/14fabdd9ba87d3855cd9e07a4a8e298240c06c32.png",
+              name: "Reader",
+            },
+            {
+              url: "https://64.media.tumblr.com/813967cfcf02a55d9b1d0dfd1aaff757/4dc8e55108cf74d2-d8/s540x810/0108220e0d1be29cd3b35392fe0da2d395e0c2f8.png",
+              name: "Print",
+            },
+            {
+              url: "https://64.media.tumblr.com/3348cb2690edd69e4abef37e181df74d/a805f4b239e74093-b6/s540x810/18d6a7c2de480930d0a2fc78916458fcc4e25b52.png",
+              name: "Finder",
+            },
+          ].map(({ url, name, onClick }, index) => (
+            <button
+              key={index}
+              className="app-icon"
+              onClick={onClick} // Add the click handler
+              style={{ cursor: "pointer", border: "none", background: "none" }} // Remove default button styles
+            >
+              <div
+                style={{
+                  backgroundImage: `url(${url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  width: "75px",
+                  height: "75px",
+                }}
+              ></div>
+              <span className="app-icon-label">{name}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

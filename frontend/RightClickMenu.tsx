@@ -49,7 +49,6 @@ const RightClick = () => {
 
   return (
     <div>
-
       {/* Context Menu */}
       {contextMenu.visible && (
         <div
@@ -65,21 +64,9 @@ const RightClick = () => {
             zIndex: 1000,
           }}
         >
-          <div
-            className="context-menu-item"
-          >
-            About
-          </div>
-          <div
-            className="context-menu-item"
-          >
-            Support
-          </div>
-          <div
-            className="context-menu-item"
-          >
-            Inspect Element
-          </div>
+          <div className="context-menu-item">About</div>
+          <div className="context-menu-item">Support</div>
+          <div className="context-menu-item">Inspect Element</div>
         </div>
       )}
     </div>
