@@ -23,3 +23,4 @@ hyper-util.workspace = true
 diesel.workspace = true
 serde.workspace = true
 fastwebsockets.workspace = true
+urlencoding.workspace = true

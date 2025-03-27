@@ -25,7 +25,9 @@ pub async fn append_to_chat(req: Request, cx: Arc<Context>) -> libserver::Servic
         sender,
         body,
         chat_id,
-    } = serde_json::from_str(&body)?;
+    } = serde_json::from_str(&body as &str).inspect_err(|e| {
+        dbg!(e);
+    })?;
 
     let chat = Chat::get_by_id(cx.db(), chat_id).await?;
 
@@ -37,9 +39,9 @@ pub async fn append_to_chat(req: Request, cx: Arc<Context>) -> libserver::Servic
 }
 
 #[derive(Deserialize)]
-struct AppendToChatInput<'a> {
-    sender: &'a str,
-    body: &'a str,
+struct AppendToChatInput {
+    sender: String,
+    body: String,
     chat_id: i32,
 }
 

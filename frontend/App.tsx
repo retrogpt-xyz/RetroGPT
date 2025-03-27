@@ -126,10 +126,14 @@ function App() {
 
     const { chat_id } = await response.json();
 
-    // Step 2: Connect to the WebSocket stream
-    const ws = new WebSocket(
-      `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/v0.0.1/attach/${chat_id}`,
-    );
+    // Build WebSocket URL with protocol, host, endpoint, and session token
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsHost = window.location.host;
+    const wsEndpoint = `/api/v0.0.1/attach/${chat_id}`;
+    const wsQuery = `?token=${encodeURIComponent(sessToken)}`;
+    const ws_url = `${wsProtocol}//${wsHost}${wsEndpoint}${wsQuery}`;
+
+    const ws = new WebSocket(ws_url);
 
     // Append a new message for streaming
     setDisplayMessages((prev) => [

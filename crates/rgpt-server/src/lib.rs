@@ -67,6 +67,22 @@ pub async fn validate_session_header(
     validate_session_token(db, session_token, user_id).await
 }
 
+pub fn extract_query_param(uri: &hyper::Uri, param_name: &str) -> Option<String> {
+    uri.query()
+        .and_then(|query| {
+            query.split('&')
+                .find_map(|pair| {
+                    let mut parts = pair.split('=');
+                    if parts.next() == Some(param_name) {
+                        parts.next().map(|value| urlencoding::decode(value).ok().map(|v| v.into_owned()))
+                    } else {
+                        None
+                    }
+                })
+                .flatten()
+        })
+}
+
 pub async fn validate_session_token(
     db: Arc<Database>,
     session_token: String,
