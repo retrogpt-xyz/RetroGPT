@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
-use api::prompt::prompt_route;
 use http_body_util::BodyExt;
 use hyper::{HeaderMap, body::Body};
 use libserver::{DynRoute, NOT_FOUND, Route, ServiceBuilder, StaticDirRouter};
@@ -19,7 +18,6 @@ pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Erro
 
     ServiceBuilder::new()
         .with_dyn_route(static_asset_route(cx.static_dir()))
-        .with_dyn_route(prompt_route(cx.clone()))
         .with_dyn_route(api::v0_0_1::route(cx.clone()))
         .with_fallback(NOT_FOUND)
         .serve(listener)
@@ -54,7 +52,7 @@ pub async fn collect_body_string(
     Ok(string)
 }
 
-pub async fn validate_session(
+pub async fn validate_session_header(
     db: Arc<Database>,
     headers: &HeaderMap,
     user_id: Option<i32>,
@@ -64,6 +62,32 @@ pub async fn validate_session(
         None => Err(InvalidSessionTokenHeader)?,
     };
 
+    validate_session_token(db, session_token, user_id).await
+}
+
+pub fn extract_query_param(uri: &hyper::Uri, param_name: &str) -> Option<String> {
+    uri.query().and_then(|query| {
+        query
+            .split('&')
+            .find_map(|pair| {
+                let mut parts = pair.split('=');
+                if parts.next() == Some(param_name) {
+                    parts
+                        .next()
+                        .map(|value| urlencoding::decode(value).ok().map(|v| v.into_owned()))
+                } else {
+                    None
+                }
+            })
+            .flatten()
+    })
+}
+
+pub async fn validate_session_token(
+    db: Arc<Database>,
+    session_token: String,
+    user_id: Option<i32>,
+) -> Result<Session, libserver::ServiceError> {
     if session_token == "__default__" {
         let default_user = User::default(db.clone()).await?;
         let session = Session::get_for_user(db.clone(), &default_user).await?;
@@ -82,7 +106,7 @@ pub async fn validate_session(
         session.delete(db.clone()).await?;
         Err(InvalidSessionTokenHeader)?
     } else {
-        return Ok(session);
+        Ok(session)
     }
 }
 

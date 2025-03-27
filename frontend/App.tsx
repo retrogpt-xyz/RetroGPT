@@ -103,21 +103,6 @@ function App() {
     setDisplayMessages([]);
     setChatId(null);
   }, [sessToken]);
-  /*
-  const handleMouseMove = (event: MouseEvent) => {
-    setMousePosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
-  };
-
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-*/
 
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
     const headers: HeadersInit = {
@@ -125,19 +110,31 @@ function App() {
     };
     headers["X-Session-Token"] = sessToken;
 
-    const response = await fetch("/api/prompt", {
+    // Step 1: Create the response stream via the semver'd prompt endpoint
+    const response = await fetch("/api/v0.0.1/prompt", {
       method: "POST",
-      body: JSON.stringify(msg),
+      body: JSON.stringify({
+        text: msg.text,
+        chat_id: msg.chatId,
+      }),
       headers,
     });
 
-    const reader = response.body?.getReader();
-    if (!reader) {
-      console.error("Failed to get reader from response body.");
+    if (!response.ok) {
+      console.error("Failed to create prompt stream");
       return;
     }
-    const decoder = new TextDecoder("utf-8");
-    let aiResponse = "";
+
+    const { chat_id } = await response.json();
+
+    // Build WebSocket URL with protocol, host, endpoint, and session token
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsHost = window.location.host;
+    const wsEndpoint = `/api/v0.0.1/attach/${chat_id}`;
+    const wsQuery = `?token=${encodeURIComponent(sessToken)}`;
+    const ws_url = `${wsProtocol}//${wsHost}${wsEndpoint}${wsQuery}`;
+
+    const ws = new WebSocket(ws_url);
 
     // Append a new message for streaming
     setDisplayMessages((prev) => [
@@ -146,11 +143,11 @@ function App() {
     ]);
 
     const messageIndex = displayMessages.length + 1;
+    let aiResponse = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      aiResponse += decoder.decode(value, { stream: true });
+    ws.onmessage = (event) => {
+      const chunk = event.data;
+      aiResponse += chunk;
 
       // Update the last message with the new data
       setDisplayMessages((prev) => {
@@ -161,26 +158,31 @@ function App() {
         };
         return updatedMessages;
       });
-    }
+    };
 
-    const chatIdHeader = response.headers.get("X-Chat-ID");
+    ws.onclose = async () => {
+      // Step 3: Append the complete response to chat
+      await fetch("/api/v0.0.1/append_to_chat", {
+        method: "POST",
+        body: JSON.stringify({
+          sender: "ai",
+          body: aiResponse,
+          chat_id: chat_id,
+        }),
+        headers,
+      });
 
-    if (chatId) setTimeout(() => syncMessages(), 1000);
-    await syncUserOwnedChats();
+      await syncUserOwnedChats();
+      setChatId(chat_id);
+    };
 
-    if (chatIdHeader) {
-      setChatId(parseInt(chatIdHeader));
-    }
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
   };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-
-    // if (sessToken == "__default__") {
-    // return;
-    // }
-
-    await syncMessages();
 
     setDisplayMessages((prev) => [
       ...prev,
