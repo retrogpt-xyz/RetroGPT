@@ -68,19 +68,21 @@ pub async fn validate_session_header(
 }
 
 pub fn extract_query_param(uri: &hyper::Uri, param_name: &str) -> Option<String> {
-    uri.query()
-        .and_then(|query| {
-            query.split('&')
-                .find_map(|pair| {
-                    let mut parts = pair.split('=');
-                    if parts.next() == Some(param_name) {
-                        parts.next().map(|value| urlencoding::decode(value).ok().map(|v| v.into_owned()))
-                    } else {
-                        None
-                    }
-                })
-                .flatten()
-        })
+    uri.query().and_then(|query| {
+        query
+            .split('&')
+            .find_map(|pair| {
+                let mut parts = pair.split('=');
+                if parts.next() == Some(param_name) {
+                    parts
+                        .next()
+                        .map(|value| urlencoding::decode(value).ok().map(|v| v.into_owned()))
+                } else {
+                    None
+                }
+            })
+            .flatten()
+    })
 }
 
 pub async fn validate_session_token(
