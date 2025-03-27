@@ -210,13 +210,16 @@ impl Service {
 
         loop {
             let service = service.clone();
-            let stream = TokioIo::new(listener.accept().await?.0);
+            let io = TokioIo::new(listener.accept().await?.0);
 
             tokio::spawn(async move {
                 http1::Builder::new()
-                    .serve_connection(stream, service)
+                    .serve_connection(io, service)
                     .with_upgrades()
                     .await
+                    .inspect_err(|e| {
+                        dbg!(e);
+                    })
                     .ok();
             });
         }
