@@ -1,4 +1,6 @@
-set +xe
+#! /bin/bash
+
+set -xe
 
 docker buildx build -t retrogpt/retrogpt:latest .
 
