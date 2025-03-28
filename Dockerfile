@@ -16,7 +16,7 @@ RUN for dir in crates/*; do \
 RUN cargo build --release
 
 RUN rm -rf crates/*/src
-COPY --parents crates/*/src .
+COPY --parents crates/*/src ./
 
 RUN touch crates/*/src/main.rs
 RUN touch crates/*/src/lib.rs
