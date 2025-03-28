@@ -1567,6 +1567,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rgpt-api"
+version = "0.1.0"
+dependencies = [
+ "librgpt",
+ "rgpt-cfg",
+ "rgpt-server",
+ "tokio",
+]
+
+[[package]]
 name = "rgpt-cfg"
 version = "0.1.0"
 dependencies = [
@@ -1612,6 +1622,15 @@ dependencies = [
  "tokio-util",
  "tower",
  "urlencoding",
+]
+
+[[package]]
+name = "rgpt-static"
+version = "0.1.0"
+dependencies = [
+ "rgpt-cfg",
+ "rgpt-server",
+ "tokio",
 ]
 
 [[package]]
