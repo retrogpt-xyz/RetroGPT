@@ -1,7 +1,7 @@
 /* Menu bar */
 @font-face {
   font-family: "w95-typeface";
-  src: url("https://dl.dafont.com/dl/?f=w95fa");
+  src: url("./assets/fonts/w95fa.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
