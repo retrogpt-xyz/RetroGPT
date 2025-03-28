@@ -50,5 +50,5 @@ fi
 # Execute the docker compose command
 # echo "Running: docker compose --profile $profile up --build --remove-orphans $detached_flag"
 set -xe
-COMPOSE_BAKE=true docker compose --profile "$profile" up --build --remove-orphans $detached_flag
+COMPOSE_BAKE=true docker compose --profile "$profile" up --build --remove-orphans $detached_flag --pull always
 
