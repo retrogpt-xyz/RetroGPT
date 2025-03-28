@@ -39,6 +39,9 @@ services:
       - 80:80
     depends_on:
       - app
+    env_file:
+      - .env
+      - .pub.env
 
   nginx-prod:
     profiles:
