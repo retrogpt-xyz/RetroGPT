@@ -1,17 +1,32 @@
 services:
-  app:
+  rgpt_api:
     profiles:
       - dev
       - prod
-    container_name: app
+    container_name: rgpt_api
     build:
       context: .
-      target: app
+      target: api
     env_file:
       - .env
       - .pub.env
     depends_on:
       - db
+
+  rgpt_static:
+    profiles:
+      - dev
+      - prod
+    container_name: rgpt_static
+    build:
+      context: .
+      target: static
+    env_file:
+      - .env
+      - .pub.env
+    depends_on:
+      - db
+
 
   db:
     profiles:

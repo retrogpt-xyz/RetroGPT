@@ -3,7 +3,6 @@ resolver = "3"
 members = [
   "crates/librgpt",
   "crates/libserver",
-  "crates/rgpt",
   "crates/rgpt-api",
   "crates/rgpt-cfg",
   "crates/rgpt-db",
