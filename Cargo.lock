@@ -1560,13 +1560,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rgpt"
-version = "0.1.0"
-dependencies = [
- "librgpt",
-]
-
-[[package]]
 name = "rgpt-api"
 version = "0.1.0"
 dependencies = [
