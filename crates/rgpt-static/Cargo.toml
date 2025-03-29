@@ -1,0 +1,10 @@
+[package]
+name = "rgpt-static"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rgpt-server = { workspace = true }
+rgpt-cfg = { workspace = true }
+
+tokio = { workspace = true }

@@ -12,6 +12,18 @@ pub mod serve_static;
 
 use serve_static::StaticAssetService;
 
+pub fn static_asset_service(cx: Arc<Context>) -> libserver::Service {
+    ServiceBuilder::new()
+        .with_dyn_route(static_asset_route(cx.static_dir()))
+        .with_fallback(NOT_FOUND)
+}
+
+pub fn api_service(cx: Arc<Context>) -> libserver::Service {
+    ServiceBuilder::new()
+        .with_dyn_route(api::v0_0_1::route(cx))
+        .with_fallback(NOT_FOUND)
+}
+
 pub async fn run_server(cx: Arc<Context>) -> Result<(), Box<dyn std::error::Error>> {
     let addr = SocketAddr::from(([0, 0, 0, 0], cx.port()));
     let listener = TcpListener::bind(addr).await?;

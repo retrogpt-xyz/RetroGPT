@@ -1,7 +1,0 @@
-[package]
-name = "rgpt"
-version = "0.1.0"
-edition.workspace = true
-
-[dependencies]
-librgpt.workspace = true

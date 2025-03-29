@@ -43,7 +43,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN cargo install diesel_cli --no-default-features --features postgres
 
-FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab AS app
+
+FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab AS api
 
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
@@ -57,15 +58,37 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --from=backend-builder /app/target/release/rgpt .
-COPY --from=frontend-builder /app/static/ static/
+COPY --from=backend-builder /app/target/release/rgpt-api .
 COPY --from=diesel-builder /usr/local/cargo/bin/diesel .
+
 COPY migrations/ migrations/
-COPY frontend/assets/favicon.ico static/
 COPY diesel.toml .
 
-EXPOSE 3000
+EXPOSE 4002
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-CMD ["./rgpt"]
+CMD ["./rgpt-api"]
+
+FROM debian:bookworm-slim@sha256:f70dc8d6a8b6a06824c92471a1a258030836b26b043881358b967bf73de7c5ab AS static
+
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+  ca-certificates \
+  libpq5 \
+  pkg-config \
+  libssl-dev \
+  dumb-init \
+  curl \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=backend-builder /app/target/release/rgpt-static .
+COPY --from=frontend-builder /app/static/ static/
+
+EXPOSE 4001
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+CMD ["./rgpt-static"]

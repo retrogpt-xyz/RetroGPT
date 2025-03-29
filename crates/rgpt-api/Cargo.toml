@@ -1,0 +1,11 @@
+[package]
+name = "rgpt-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rgpt-server = { workspace = true }
+rgpt-cfg = { workspace = true }
+librgpt = { workspace = true }
+
+tokio = { workspace = true }
