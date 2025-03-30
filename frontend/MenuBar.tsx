@@ -2,20 +2,16 @@ import { useState } from "react";
 import "./MenuBar.css";
 
 interface MenuBarProps {
-  chatId: number | null;
   setChatId: (chatId: number | null) => void;
   userOwnedChats: { id: number; name: string }[];
-  sessToken: string | null;
   login: () => void;
   setWindowVisible: (visible: boolean) => void;
   syncUserOwnedChats: () => void;
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
-  chatId,
   setChatId,
   userOwnedChats,
-  sessToken,
   login,
   setWindowVisible,
   syncUserOwnedChats,
@@ -37,36 +33,6 @@ const MenuBar: React.FC<MenuBarProps> = ({
     setShowPopup(false);
   };
 
-  const handleSaveChat = async () => {
-    if (!chatId) {
-      alert("No chat is open. Open or create a chat first.");
-      return;
-    }
-
-    const message = prompt("Enter message to save:");
-    if (!message) return;
-
-    if (!sessToken) {
-      alert("Session token missing. Cannot save message.");
-      return;
-    }
-
-    const resp = await fetch("/api/chat/messages", {
-      method: "POST",
-      headers: {
-        "X-Session-Token": sessToken,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ chatId, text: message }),
-    });
-
-    if (resp.status === 200) {
-      console.log(`Message saved to chat ${chatId}`);
-    } else {
-      console.error("Failed to save message");
-    }
-  };
-
   return (
     <>
       <div className={`menu-bar ${showPopup ? "blur" : ""}`}>
@@ -83,7 +49,12 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={handleOpenChat}>
                 Open
               </div>
-              <div className="dropdown-item" onClick={handleSaveChat}>
+              <div
+                className="dropdown-item"
+                onClick={() => {
+                  // todo...  ??? why does this exist
+                }}
+              >
                 Save
               </div>
             </div>

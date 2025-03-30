@@ -3,6 +3,7 @@ services:
     profiles:
       - dev
       - prod
+      - hot_reload
     container_name: rgpt_api
     build:
       context: .
@@ -12,11 +13,14 @@ services:
       - .pub.env
     depends_on:
       - db
+    ports:
+      - 4002:4002
 
   rgpt_static:
     profiles:
       - dev
       - prod
+      - hot_reload
     container_name: rgpt_static
     build:
       context: .
@@ -31,6 +35,7 @@ services:
     profiles:
       - dev
       - prod
+      - hot_reload
     container_name: db
     image: postgres:latest
     restart: always
@@ -45,6 +50,7 @@ services:
   nginx-dev:
     profiles:
       - dev
+      - hot_reload
     image: nginx:alpine
     container_name: nginx-dev
     volumes:

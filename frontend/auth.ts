@@ -1,5 +1,6 @@
 import { TokenResponse } from "@react-oauth/google";
 import axios from "axios";
+import { format_api_request_url } from "./request";
 
 interface AuthResponse {
   session_token: string;
@@ -11,7 +12,7 @@ export async function auth(
 ): Promise<{ sessionToken: string; userId: number } | null> {
   try {
     const response = await axios.post<AuthResponse>(
-      "/api/v0.0.1/auth",
+      format_api_request_url("v0.0.1/auth"),
       {
         user_access_token: tokenResponse.access_token,
       },
