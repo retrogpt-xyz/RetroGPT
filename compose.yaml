@@ -12,6 +12,8 @@ services:
       - .pub.env
     depends_on:
       - db
+    ports:
+      - 4002:4002
 
   rgpt_static:
     profiles:
@@ -26,7 +28,6 @@ services:
       - .pub.env
     depends_on:
       - db
-
 
   db:
     profiles:

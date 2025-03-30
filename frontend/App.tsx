@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
+import { get_api_host } from "./request";
 
 import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import RightClick from "./RightClickMenu";
 import { auth } from "./auth";
+import { format_api_request_url } from "./request";
 
 interface DisplayMessage {
   text: string;
@@ -40,7 +42,7 @@ function App() {
       return;
     }
 
-    const resp = await fetch("/api/v0.0.1/user_chats", {
+    const resp = await fetch(format_api_request_url("v0.0.1/user_chats"), {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: {
@@ -73,7 +75,7 @@ function App() {
       return;
     }
 
-    fetch("/api/v0.0.1/chat_msgs", {
+    fetch(format_api_request_url("v0.0.1/chat_msgs"), {
       method: "POST",
       headers: {
         "X-Session-Token": sessToken,
@@ -111,7 +113,7 @@ function App() {
     headers["X-Session-Token"] = sessToken;
 
     // Step 1: Create the response stream via the semver'd prompt endpoint
-    const response = await fetch("/api/v0.0.1/prompt", {
+    const response = await fetch(format_api_request_url("v0.0.1/prompt"), {
       method: "POST",
       body: JSON.stringify({
         text: msg.text,
@@ -129,7 +131,7 @@ function App() {
 
     // Build WebSocket URL with protocol, host, endpoint, and session token
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsHost = window.location.host;
+    const wsHost = get_api_host();
     const wsEndpoint = `/api/v0.0.1/attach/${chat_id}`;
     const wsQuery = `?token=${encodeURIComponent(sessToken)}`;
     const ws_url = `${wsProtocol}//${wsHost}${wsEndpoint}${wsQuery}`;
@@ -162,7 +164,7 @@ function App() {
 
     ws.onclose = async () => {
       // Step 3: Append the complete response to chat
-      await fetch("/api/v0.0.1/append_to_chat", {
+      await fetch(format_api_request_url("v0.0.1/append_to_chat"), {
         method: "POST",
         body: JSON.stringify({
           sender: "ai",
@@ -215,10 +217,8 @@ function App() {
         <div className="main-window">
           <div>
             <MenuBar
-              chatId={chatId}
               setChatId={setChatId}
               userOwnedChats={userOwnedChats} // Pass the state value, not the setter
-              sessToken={sessToken}
               login={login}
               setWindowVisible={setWindowVisible}
               syncUserOwnedChats={syncUserOwnedChats}
