@@ -12,7 +12,8 @@ function get_api_base_url(): string {
 }
 
 export function format_api_request_url(slug: string) {
-  const base_slug = get_api_base_url();
+  const base_url = get_api_base_url();
+  const normalizedSlug = slug.startsWith("/") ? slug.substring(1) : slug;
 
-  return `${base_slug}/api/${slug}`;
+  return `${base_url}/api/${normalizedSlug}`;
 }
