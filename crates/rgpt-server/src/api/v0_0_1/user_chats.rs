@@ -15,10 +15,13 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
 
 pub async fn user_chats(req: Request, cx: Arc<Context>) -> libserver::ServiceResult {
     crate::check_body_size(&req, cx.config.max_req_size)?;
+    let headers = req.headers().to_owned();
     let body = crate::collect_body_string(req).await?;
 
     let UserChatsServiceInput { user_id } = serde_json::from_str(&body)?;
     let user = User::get_by_id(cx.db(), user_id).await?;
+
+    crate::validate_session_header(cx.db(), &headers, Some(user.user_id)).await?;
 
     let chats = if user.user_id == 1 {
         vec![]
