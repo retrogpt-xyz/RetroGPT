@@ -7,6 +7,7 @@ pub mod append_to_chat;
 pub mod attach;
 pub mod auth;
 pub mod chat_msgs;
+pub mod delete_chat;
 pub mod prompt;
 pub mod user_chats;
 
@@ -20,6 +21,7 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
         .with_dyn_route(prompt::route(cx.clone()))
         .with_dyn_route(attach::route(cx.clone()))
         .with_dyn_route(append_to_chat::route(cx.clone()))
+        .with_dyn_route(delete_chat::route(cx.clone()))
         .with_fallback(NOT_FOUND);
 
     Route::from_parts(router, service).make_dyn()
