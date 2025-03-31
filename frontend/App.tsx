@@ -107,6 +107,11 @@ function App() {
   }, [sessToken]);
 
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
+    setDisplayMessages((prev) => [
+      ...prev,
+      { text: "...", sender: "ai" as const },
+    ]);
+
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
@@ -137,12 +142,6 @@ function App() {
     const ws_url = `${wsProtocol}//${wsHost}${wsEndpoint}${wsQuery}`;
 
     const ws = new WebSocket(ws_url);
-
-    // Append a new message for streaming
-    setDisplayMessages((prev) => [
-      ...prev,
-      { text: "...", sender: "ai" as const },
-    ]);
 
     const messageIndex = displayMessages.length + 1;
     let aiResponse = "";
