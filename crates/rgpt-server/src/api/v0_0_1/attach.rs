@@ -40,11 +40,17 @@ pub async fn attach(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
     if attach_token_clean.is_empty() {
         return Err(Box::new(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
-            "Chat ID missing from path",
+            "Attach token missing from path",
         )));
     }
 
-    let attach_token = Uuid::parse_str(attach_token_clean)?;
+    let attach_token = Uuid::parse_str(attach_token_clean)
+        .map_err(|_| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Invalid attach token: {}", attach_token_clean),
+            )
+        })?;
 
     let rx = cx
         .state
