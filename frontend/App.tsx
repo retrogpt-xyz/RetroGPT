@@ -29,6 +29,7 @@ function App() {
 
   const [sessToken, setSessToken] = useState<string>("__default__");
   const [userId, setUserId] = useState<number | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
 
   const [userOwnedChats, setUserOwnedChats] = useState<
     { id: number; name: string }[]
@@ -106,6 +107,21 @@ function App() {
     setChatId(null);
   }, [sessToken]);
 
+
+  const handleFileUpload = (file: File | null) => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setFileUrl(url);
+    } else {
+      setFileUrl(null);  // Reset fileUrl if no file is selected
+    }
+  };
+
+  // Handle file removal
+  const handleRemoveFile = () => {
+    setFileUrl(null);  // Remove file URL from state
+  };
+
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
@@ -126,7 +142,7 @@ function App() {
       console.error("Failed to create prompt stream");
       return;
     }
-
+    
     const { chat_id } = await response.json();
 
     // Build WebSocket URL with protocol, host, endpoint, and session token
@@ -222,6 +238,9 @@ function App() {
               login={login}
               setWindowVisible={setWindowVisible}
               syncUserOwnedChats={syncUserOwnedChats}
+              fileUrl={fileUrl}
+              onFileUpload={handleFileUpload}   // Pass handleFileUpload as onFileUpload prop
+              onRemoveFile={handleRemoveFile}
             />
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
@@ -239,21 +258,27 @@ function App() {
                     {message.text}
                   </div>
                 ))}
+                {fileUrl && (
+              <div className="uploaded-file">
+              <img src={fileUrl} alt="Uploaded File" className="uploaded-file-image" />
+              <button className="remove-file-button" onClick={handleRemoveFile}> X
+          </button>
+    </div>
+  )}
               </div>
               <div className="chat-input">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder="Type your message..."
-                />
-                <button onClick={handleSendMessage}>Send</button>
-              </div>
+  <textarea
+    value={inputMessage}
+    onChange={(e) => setInputMessage(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        handleSendMessage();
+      }
+    }}
+    placeholder=" Type your message..."
+  />
+  <button onClick={handleSendMessage}>Send</button>
+</div>
             </div>
           </div>
         </div>
