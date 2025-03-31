@@ -23,7 +23,7 @@ pub async fn delete_chat(req: Request, cx: Arc<Context>) -> libserver::ServiceRe
 
     crate::validate_session_header(cx.db(), &headers, Some(chat.user_id)).await?;
 
-    chat.delete().await?;
+    chat.delete(cx.db()).await?;
 
     Ok(Response::new(single_frame_body("")))
 }
