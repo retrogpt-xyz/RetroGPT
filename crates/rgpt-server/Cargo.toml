@@ -24,3 +24,4 @@ diesel.workspace = true
 serde.workspace = true
 fastwebsockets.workspace = true
 urlencoding.workspace = true
+uuid = { workspace = true }

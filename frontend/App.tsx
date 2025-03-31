@@ -127,12 +127,12 @@ function App() {
       return;
     }
 
-    const { chat_id } = await response.json();
+    const { chat_id, attach_token } = await response.json();
 
     // Build WebSocket URL with protocol, host, endpoint, and session token
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsHost = get_api_host();
-    const wsEndpoint = `/api/v0.0.1/attach/${chat_id}`;
+    const wsEndpoint = `/api/v0.0.1/attach/${attach_token}`;
     const wsQuery = `?token=${encodeURIComponent(sessToken)}`;
     const ws_url = `${wsProtocol}//${wsHost}${wsEndpoint}${wsQuery}`;
 
