@@ -74,8 +74,12 @@ impl Chat {
         Ok(msgs)
     }
 
-    pub async fn delete(mut self) -> Result<(), libserver::ServiceError> {
+    pub async fn delete(mut self, db: Arc<Database>) -> Result<(), libserver::ServiceError> {
         self.deleted = true;
+        diesel::update(schema::chats::table.find(self.id))
+            .set(schema::chats::deleted.eq(true))
+            .execute(db)
+            .await?;
         Ok(())
     }
 }
