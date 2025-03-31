@@ -21,6 +21,7 @@ pub struct Chat {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub name: Option<String>,
+    pub deleted: bool,
 }
 
 impl Chat {
@@ -50,7 +51,13 @@ impl Chat {
         user_id: i32,
         name: Option<String>,
     ) -> Result<Chat, libserver::ServiceError> {
-        NewChat { user_id, name }.create(db).await
+        NewChat {
+            user_id,
+            name,
+            deleted: false,
+        }
+        .create(db)
+        .await
     }
 
     pub async fn msg_chain(&self, db: Arc<Database>) -> Result<Vec<Msg>, libserver::ServiceError> {
@@ -66,6 +73,15 @@ impl Chat {
 
         Ok(msgs)
     }
+
+    pub async fn delete(mut self, db: Arc<Database>) -> Result<(), libserver::ServiceError> {
+        self.deleted = true;
+        diesel::update(schema::chats::table.find(self.id))
+            .set(schema::chats::deleted.eq(true))
+            .execute(db)
+            .await?;
+        Ok(())
+    }
 }
 
 #[derive(Insertable)]
@@ -74,6 +90,7 @@ impl Chat {
 struct NewChat {
     pub user_id: i32,
     pub name: Option<String>,
+    pub deleted: bool,
 }
 
 impl NewChat {
