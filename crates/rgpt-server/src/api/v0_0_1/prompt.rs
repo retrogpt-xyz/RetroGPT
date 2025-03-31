@@ -14,6 +14,7 @@ use rgpt_db::{RunQueryDsl, chat::Chat, msg::Msg};
 use rgpt_stream::AttachHandle;
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
+use uuid::Uuid;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
     let router = PathEqRouter::new("/api/v0.0.1/prompt");
@@ -63,9 +64,12 @@ pub async fn prompt(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
 
     let model_request = create_chat_request(cx.clone(), chat_msgs)?;
 
+    let attach_token = Uuid::new_v4();
+
     tokio::spawn(stream_model_response(
         chat.id,
         chat.user_id,
+        attach_token,
         chat.head_msg,
         model_request,
         cx.clone(),
@@ -74,6 +78,7 @@ pub async fn prompt(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
     let response = serde_json::to_string(&PromptServiceResponse {
         chat_id: chat.id,
         chat_title: chat_title.as_deref(),
+        attach_token: attach_token.to_string(),
     })?;
 
     let body = single_frame_body(response);
@@ -84,6 +89,7 @@ pub async fn prompt(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
 struct PromptServiceResponse<'a> {
     chat_id: i32,
     chat_title: Option<&'a str>,
+    attach_token: String,
 }
 
 async fn generate_chat_name(
@@ -167,6 +173,7 @@ fn create_chat_request(
 pub async fn stream_model_response(
     chat_id: i32,
     user_id: i32,
+    attach_token: Uuid,
     parent_message_id: Option<i32>,
     completion_request: CreateChatCompletionRequest,
     cx: Arc<Context>,
@@ -177,7 +184,7 @@ pub async fn stream_model_response(
         .stream_registry
         .lock()
         .await
-        .register(chat_id, attach_handle)
+        .register(attach_token, attach_handle)
         .expect("unreachable");
 
     let mut channel = Err::<UnboundedSender<Bytes>, _>(attach_rx);

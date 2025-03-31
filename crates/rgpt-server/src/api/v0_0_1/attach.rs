@@ -5,7 +5,7 @@ use futures::{StreamExt, channel::mpsc::UnboundedReceiver};
 use hyper::body::Bytes;
 use libserver::{DynRoute, PathPrefixRouter, Request, Route, single_frame_body};
 use rgpt_cfg::Context;
-use rgpt_db::chat::Chat;
+use uuid::Uuid;
 
 pub fn route(cx: Arc<Context>) -> DynRoute {
     let router = PathPrefixRouter::new("/api/v0.0.1/attach");
@@ -32,36 +32,32 @@ pub async fn attach(req: Request, cx: Arc<Context>) -> libserver::ServiceResult 
     crate::validate_session_token(cx.db(), session_token, None).await?;
 
     let path = req.uri().path();
-    let chat_id_str = path.strip_prefix("/api/v0.0.1/attach/").unwrap_or("");
+    let attach_token_str = path.strip_prefix("/api/v0.0.1/attach/").unwrap_or("");
 
     // Extract just the chat ID part, removing any trailing slashes or query parameters
-    let chat_id_clean = chat_id_str.split('/').next().unwrap_or("");
+    let attach_token_clean = attach_token_str.split('/').next().unwrap_or("");
 
-    if chat_id_clean.is_empty() {
+    if attach_token_clean.is_empty() {
         return Err(Box::new(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
-            "Chat ID missing from path",
+            "Attach token missing from path",
         )));
     }
 
-    let chat_id = match chat_id_clean.parse::<i32>() {
-        Ok(id) => id,
-        Err(_) => {
-            return Err(Box::new(std::io::Error::new(
+    let attach_token = Uuid::parse_str(attach_token_clean)
+        .map_err(|_| {
+            std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                "Invalid chat ID format",
-            )));
-        }
-    };
-
-    let chat = Chat::get_by_id(cx.db(), chat_id).await?;
+                format!("Invalid attach token: {}", attach_token_clean),
+            )
+        })?;
 
     let rx = cx
         .state
         .stream_registry
         .lock()
         .await
-        .try_attach(chat.id)
+        .try_attach(attach_token)
         .expect("better err handling later");
 
     let (resp, ws_fut) = upgrade(req)?;
