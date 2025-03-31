@@ -7,6 +7,9 @@ interface MenuBarProps {
   login: () => void;
   setWindowVisible: (visible: boolean) => void;
   syncUserOwnedChats: () => void;
+  onFileUpload: (file: File | null) => void; // File upload handler prop
+  fileUrl: string | null;
+  onRemoveFile: () => void;  
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
@@ -15,6 +18,8 @@ const MenuBar: React.FC<MenuBarProps> = ({
   login,
   setWindowVisible,
   syncUserOwnedChats,
+  onFileUpload,
+  
 }) => {
   const [openMenu, setOpenMenu] = useState<
     "file" | "edit" | "window" | "save" | null
@@ -35,6 +40,26 @@ const MenuBar: React.FC<MenuBarProps> = ({
     setShowPopup(false);
   };
 
+
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files ? event.target.files[0] : null;
+    onFileUpload(selectedFile); // Update fileUrl in parent (App)
+  };
+
+  // Remove uploaded file
+  const handleRemoveFile = () => {
+    onFileUpload(null); // Remove file in parent (App)
+  };
+
+  // Trigger file input click
+  const handleFileUploadClick = () => {
+    document.getElementById('fileInput')?.click();
+  };
+
+
+
   return (
     <>
       <div className={`menu-bar ${showPopup ? "blur" : ""}`}>
@@ -51,6 +76,14 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={handleOpenChat}>
                 Open
               </div>
+              <div className="dropdown-item"onClick={handleFileUploadClick}> Upload</div>
+              <input 
+                  id="fileInput" 
+                  type="file" 
+                  style={{ display: 'none' }} 
+                  onChange={handleFileChange}
+                  accept=".pdf, .jpeg, .jpg"
+                />
               <div
                 className="dropdown-item"
                 onClick={() => {
@@ -72,9 +105,6 @@ const MenuBar: React.FC<MenuBarProps> = ({
             <div className="dropdown">
               <div className="dropdown-item">Undo</div>
               <div className="dropdown-item">Redo</div>
-              <div className="dropdown-item">Cut</div>
-              <div className="dropdown-item">Copy</div>
-              <div className="dropdown-item">Paste</div>
             </div>
           )}
         </div>
