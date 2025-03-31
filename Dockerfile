@@ -86,6 +86,7 @@ WORKDIR /app
 
 COPY --from=backend-builder /app/target/release/rgpt-static .
 COPY --from=frontend-builder /app/static/ static/
+COPY frontend/assets/favicon.ico static/
 
 EXPOSE 4001
 
