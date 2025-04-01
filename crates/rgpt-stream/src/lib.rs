@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use bytes::Bytes;
 use futures::channel::mpsc;
 use tokio::sync::oneshot;
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct StreamRegistry {
-    pub handle_map: HashMap<i32, AttachHandle>,
+    pub handle_map: HashMap<Uuid, AttachHandle>,
 }
 
 impl Default for StreamRegistry {
@@ -22,15 +23,15 @@ impl StreamRegistry {
         }
     }
 
-    pub fn register(&mut self, id: i32, handle: AttachHandle) -> Option<()> {
-        if self.handle_map.contains_key(&id) {
+    pub fn register(&mut self, uuid: Uuid, handle: AttachHandle) -> Option<Uuid> {
+        if self.handle_map.contains_key(&uuid) {
             return None; // ID already exists, registration failed
         }
-        self.handle_map.insert(id, handle);
-        Some(())
+        self.handle_map.insert(uuid, handle);
+        Some(uuid)
     }
 
-    pub fn try_attach(&mut self, id: i32) -> Option<mpsc::UnboundedReceiver<Bytes>> {
+    pub fn try_attach(&mut self, id: Uuid) -> Option<mpsc::UnboundedReceiver<Bytes>> {
         self.handle_map.remove(&id).map(|handle| handle.attach())
     }
 }

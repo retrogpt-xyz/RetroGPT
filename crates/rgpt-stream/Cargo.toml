@@ -8,3 +8,4 @@ tokio.workspace = true
 futures.workspace = true
 hyper.workspace = true
 bytes.workspace = true
+uuid = { workspace = true }
