@@ -255,17 +255,20 @@ button:hover {
   resize: none; /* Prevent resizing the textarea */
   border: 2px outset #c0c0c0;
   padding: 5px;
-  height: 15px;
+  height: 15px; /* Set a minimum height */
+   /* Let the height adjust automatically */
 }
 
 
 .chat-input button {
+  height: 30px; /* Keeps button at a fixed height */
   margin-left: 5px;
   padding: 5px 10px;
   background: #808080;
   border: 2px outset #c0c0c0;
   color: #fff;
   font-family: "w95-typeface";
+  align-self: flex-start;
 }
 
 .chat-input button:hover {

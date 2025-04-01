@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
@@ -33,6 +33,7 @@ function App() {
 
   const [userId, setUserId] = useState<number | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [userOwnedChats, setUserOwnedChats] = useState<
     { id: number; name: string }[]
@@ -43,6 +44,26 @@ function App() {
   const flushUserState = () => {
     setDisplayMessages([]);
     setChatId(null);
+  };
+
+  const handleChange = (e) => {
+    const textarea = e.target;
+
+    // Update the inputMessage state
+    setInputMessage(e.target.value);
+    // Adjust the height dynamically as the user types
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight - 25}px`; // Set new height based on scrollHeight
+  };
+
+  const resetTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "15px";
+      textarea.focus();
+
+      textarea.setSelectionRange(0, 0);
+    }
   };
 
   const syncUserOwnedChats = async () => {
@@ -117,20 +138,18 @@ function App() {
     syncMessages();
   }, [chatId]);
 
-
-
   const handleFileUpload = (file: File | null) => {
     if (file) {
       const url = URL.createObjectURL(file);
       setFileUrl(url);
     } else {
-      setFileUrl(null);  // Reset fileUrl if no file is selected
+      setFileUrl(null); // Reset fileUrl if no file is selected
     }
   };
 
   // Handle file removal
   const handleRemoveFile = () => {
-    setFileUrl(null);  // Remove file URL from state
+    setFileUrl(null); // Remove file URL from state
   };
 
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
@@ -249,7 +268,7 @@ function App() {
               setWindowVisible={setWindowVisible}
               syncUserOwnedChats={syncUserOwnedChats}
               fileUrl={fileUrl}
-              onFileUpload={handleFileUpload}   // Pass handleFileUpload as onFileUpload prop
+              onFileUpload={handleFileUpload} // Pass handleFileUpload as onFileUpload prop
               onRemoveFile={handleRemoveFile}
             />
           </div>
@@ -269,26 +288,40 @@ function App() {
                   </div>
                 ))}
                 {fileUrl && (
-              <div className="uploaded-file">
-              <img src={fileUrl} alt="Uploaded File" className="uploaded-file-image" />
-              <button className="remove-file-button" onClick={handleRemoveFile}> X
-          </button>
-    </div>
-  )}
+                  <div className="uploaded-file">
+                    <img
+                      src={fileUrl}
+                      alt="Uploaded File"
+                      className="uploaded-file-image"
+                    />
+                    <button
+                      className="remove-file-button"
+                      onClick={handleRemoveFile}
+                    >
+                      {" "}
+                      X
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="chat-input">
-  <textarea autoFocus
-    value={inputMessage}
-    onChange={(e) => setInputMessage(e.target.value)}
-    onKeyDown={(e) => {
-      if (e.key === "Enter") {
-        handleSendMessage();
-      }
-    }}
-    placeholder=" Type your message..."
-  />
-  <button onClick={handleSendMessage}>Send</button>
-</div>
+                <textarea
+                  autoFocus
+                  ref={textareaRef}
+                  onChange={handleChange}
+                  className="chat-textarea"
+                  value={inputMessage}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      resetTextareaHeight();
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder=" Type your message..."
+                />
+                <button onClick={handleSendMessage}>Send</button>
+              </div>
             </div>
           </div>
         </div>
