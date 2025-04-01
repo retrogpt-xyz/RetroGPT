@@ -277,7 +277,7 @@ function App() {
   )}
               </div>
               <div className="chat-input">
-  <textarea
+  <textarea autoFocus
     value={inputMessage}
     onChange={(e) => setInputMessage(e.target.value)}
     onKeyDown={(e) => {

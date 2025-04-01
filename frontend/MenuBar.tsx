@@ -41,7 +41,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   };
 
 
-  const [file, setFile] = useState<File | null>(null);
+  //const [file, setFile] = useState<File | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
@@ -49,9 +49,6 @@ const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   // Remove uploaded file
-  const handleRemoveFile = () => {
-    onFileUpload(null); // Remove file in parent (App)
-  };
 
   // Trigger file input click
   const handleFileUploadClick = () => {
