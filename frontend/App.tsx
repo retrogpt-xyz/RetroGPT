@@ -46,7 +46,7 @@ function App() {
     setChatId(null);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const textarea = e.target;
 
     // Update the inputMessage state
