@@ -1,0 +1,45 @@
+name: Format Code
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format Rust code
+        run: cargo fmt
+
+      - name: Format JavaScript/TypeScript code
+        run: npx prettier -w .
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "style: format code with cargo fmt and prettier"
+          branch: ${{ github.head_ref }}
