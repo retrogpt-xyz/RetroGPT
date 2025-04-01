@@ -8,6 +8,10 @@ import Dock from "./Dockbar";
 import RightClick from "./RightClickMenu";
 import { auth } from "./auth";
 import { format_api_request_url } from "./request";
+import {
+  getSessionTokenCookieWrapper,
+  setSessionTokenCookieWrapper,
+} from "./cookie";
 
 interface DisplayMessage {
   text: string;
@@ -27,7 +31,6 @@ function App() {
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
 
-  const [sessToken, setSessToken] = useState<string>("__default__");
   const [userId, setUserId] = useState<number | null>(null);
 
   const [userOwnedChats, setUserOwnedChats] = useState<
@@ -36,8 +39,14 @@ function App() {
 
   const displayLoginOpts = false;
 
+  const flushUserState = () => {
+    setDisplayMessages([]);
+    setChatId(null);
+  };
+
   const syncUserOwnedChats = async () => {
-    if (sessToken == "__default__" || !userId) {
+    const sessionToken = getSessionTokenCookieWrapper();
+    if (sessionToken === "__default__") {
       setUserOwnedChats([]);
       return;
     }
@@ -46,28 +55,34 @@ function App() {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: {
-        "X-Session-Token": sessToken,
+        "X-Session-Token": sessionToken,
         "Content-Type": "application/json",
       },
     });
     if (resp.status !== 200) return;
-    const body = await resp.json();
-    setUserOwnedChats(body);
+    const { chats, user_id } = await resp.json();
+    setUserOwnedChats(chats);
+    if (user_id !== userId) {
+      setUserId(user_id);
+    }
   };
-
-  useEffect(() => {
-    syncUserOwnedChats();
-  }, [userId, sessToken, chatId]);
 
   const login = useGoogleLogin({
     onSuccess: async (user_access_token) => {
       const authResult = await auth(user_access_token);
       if (authResult) {
-        setSessToken(authResult.sessionToken);
+        setSessionTokenCookieWrapper(authResult.sessionToken);
         setUserId(authResult.userId);
+        flushUserState();
       }
     },
   });
+
+  const logout = () => {
+    setSessionTokenCookieWrapper("__default__");
+    flushUserState();
+    googleLogout();
+  };
 
   const syncMessages = async () => {
     if (!chatId) {
@@ -78,7 +93,7 @@ function App() {
     fetch(format_api_request_url("v0.0.1/chat_msgs"), {
       method: "POST",
       headers: {
-        "X-Session-Token": sessToken,
+        "X-Session-Token": getSessionTokenCookieWrapper(),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ chat_id: chatId }),
@@ -101,11 +116,6 @@ function App() {
     syncMessages();
   }, [chatId]);
 
-  useEffect(() => {
-    setDisplayMessages([]);
-    setChatId(null);
-  }, [sessToken]);
-
   const fetchAIResponse = async (msg: BackendQueryMessage) => {
     setDisplayMessages((prev) => [
       ...prev,
@@ -115,7 +125,7 @@ function App() {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
-    headers["X-Session-Token"] = sessToken;
+    headers["X-Session-Token"] = getSessionTokenCookieWrapper();
 
     // Step 1: Create the response stream via the semver'd prompt endpoint
     const response = await fetch(format_api_request_url("v0.0.1/prompt"), {
@@ -138,7 +148,7 @@ function App() {
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsHost = get_api_host();
     const wsEndpoint = `/api/v0.0.1/attach/${attach_token}`;
-    const wsQuery = `?token=${encodeURIComponent(sessToken)}`;
+    const wsQuery = `?token=${encodeURIComponent(getSessionTokenCookieWrapper())}`;
     const ws_url = `${wsProtocol}//${wsHost}${wsEndpoint}${wsQuery}`;
 
     const ws = new WebSocket(ws_url);
@@ -193,7 +203,7 @@ function App() {
     const be_query_msg: BackendQueryMessage = {
       text: inputMessage,
       chatId: chatId,
-      sessionToken: sessToken,
+      sessionToken: getSessionTokenCookieWrapper(),
     };
 
     fetchAIResponse(be_query_msg);
@@ -260,16 +270,9 @@ function App() {
       {/* Right column with app icons */}
       <div className="app-column">
         {displayLoginOpts &&
-          (sessToken != "__default__" ? (
+          (getSessionTokenCookieWrapper() != "__default__" ? (
             <>
-              <button
-                onClick={() => {
-                  setSessToken("__default__");
-                  googleLogout();
-                }}
-              >
-                {"logout"}
-              </button>
+              <button onClick={logout}>{"logout"}</button>
             </>
           ) : (
             <button onClick={() => login()}>login</button>

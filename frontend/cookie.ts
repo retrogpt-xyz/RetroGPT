@@ -51,3 +51,11 @@ export function getSessionTokenCookie() {
 export function setSessionTokenCookie(sessionToken: string) {
   return setCookie("retrogptSessionToken", sessionToken);
 }
+
+export function getSessionTokenCookieWrapper() {
+  return Effect.runSync(getSessionTokenCookie());
+}
+
+export function setSessionTokenCookieWrapper(sessionToken: string) {
+  return Effect.runSync(setSessionTokenCookie(sessionToken));
+}
