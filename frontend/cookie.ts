@@ -20,18 +20,21 @@ export function setCookie(name: string, value: string) {
 }
 
 export function getCookie(name: string) {
+export function getCookie(name: string) {
   return Effect.gen(function* (_) {
-    let encodedName = yield* _(
+    const encodedName = yield* _(
       Effect.map(encodeUriComponent(name), (s) => s + "="),
     );
 
     const cookies = document.cookie.split("; ");
 
     for (const cookie of cookies) {
-      // Check if the cookie starts with the encoded name.
-      if (cookie.indexOf(encodedName) === 0) {
+      // Split cookie into name and value to avoid partial name matches
+      const [cookieName, cookieValue] = cookie.split('=', 2);
+      const decodedName = yield* _(decodeUriComponent(cookieName));
+      if (decodedName === name) {
         return yield* _(
-          decodeUriComponent(cookie.substring(encodedName.length)),
+          decodeUriComponent(cookieValue),
         );
       }
     }
