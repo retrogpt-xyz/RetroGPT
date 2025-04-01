@@ -20,22 +20,14 @@ export function setCookie(name: string, value: string) {
 }
 
 export function getCookie(name: string) {
-export function getCookie(name: string) {
   return Effect.gen(function* (_) {
-    const encodedName = yield* _(
-      Effect.map(encodeUriComponent(name), (s) => s + "="),
-    );
-
     const cookies = document.cookie.split("; ");
 
     for (const cookie of cookies) {
-      // Split cookie into name and value to avoid partial name matches
-      const [cookieName, cookieValue] = cookie.split('=', 2);
+      const [cookieName, cookieValue] = cookie.split("=", 2);
       const decodedName = yield* _(decodeUriComponent(cookieName));
       if (decodedName === name) {
-        return yield* _(
-          decodeUriComponent(cookieValue),
-        );
+        return yield* _(decodeUriComponent(cookieValue));
       }
     }
 
