@@ -19,9 +19,9 @@ pub async fn user_chats(req: Request, cx: Arc<Context>) -> libserver::ServiceRes
     let body = crate::collect_body_string(req).await?;
 
     let UserChatsServiceInput { user_id } = serde_json::from_str(&body)?;
-    let user = User::get_by_id(cx.db(), user_id).await?;
+    let session = crate::validate_session_header(cx.db(), &headers, user_id).await?;
 
-    crate::validate_session_header(cx.db(), &headers, Some(user.user_id)).await?;
+    let user = User::get_by_id(cx.db(), session.user_id).await?;
 
     let chats = if user.user_id == 1 {
         vec![]
@@ -29,17 +29,20 @@ pub async fn user_chats(req: Request, cx: Arc<Context>) -> libserver::ServiceRes
         user.get_chats(cx.db()).await?
     };
 
-    let fmted_chats = json!(
-        chats
-            .into_iter()
-            .map(|chat| {
-                json!({
-                    "id": chat.id,
-                    "name": chat.name.unwrap_or("Untitled Chat".into())
-                })
+    let chats = chats
+        .into_iter()
+        .map(|chat| {
+            json!({
+                "id": chat.id,
+                "name": chat.name.unwrap_or("Untitled Chat".into())
             })
-            .collect::<Vec<_>>()
-    )
+        })
+        .collect::<Vec<_>>();
+
+    let fmted_chats = json!({
+        "user_id": session.user_id,
+        "chats": chats
+    })
     .to_string();
 
     let body = single_frame_body(fmted_chats);
@@ -48,7 +51,7 @@ pub async fn user_chats(req: Request, cx: Arc<Context>) -> libserver::ServiceRes
 
 #[derive(Deserialize)]
 struct UserChatsServiceInput {
-    user_id: i32,
+    user_id: Option<i32>,
 }
 
 #[derive(Clone)]

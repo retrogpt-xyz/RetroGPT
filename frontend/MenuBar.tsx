@@ -16,10 +16,12 @@ const MenuBar: React.FC<MenuBarProps> = ({
   setWindowVisible,
   syncUserOwnedChats,
 }) => {
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openMenu, setOpenMenu] = useState<
+    "file" | "edit" | "window" | "save" | null
+  >(null);
   const [showPopup, setShowPopup] = useState(false);
 
-  const toggleMenu = (menu: string) => {
+  const toggleMenu = (menu: "file" | "edit" | "window" | "save") => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
 
