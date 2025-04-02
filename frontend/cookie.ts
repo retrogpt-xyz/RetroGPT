@@ -12,8 +12,8 @@ class CookieNotFoundError {
 
 export function setCookie(name: string, value: string) {
   return Effect.gen(function* (_) {
-    const encodedName = yield* _(encodeUriComponent(name));
-    const encodedValue = yield* _(encodeUriComponent(value));
+    const encodedName = yield* encodeUriComponent(name);
+    const encodedValue = yield* encodeUriComponent(value);
 
     document.cookie = `${encodedName}=${encodedValue}; path=/;`;
   });
@@ -25,13 +25,13 @@ export function getCookie(name: string) {
 
     for (const cookie of cookies) {
       const [cookieName, cookieValue] = cookie.split("=", 2);
-      const decodedName = yield* _(decodeUriComponent(cookieName));
+      const decodedName = yield* decodeUriComponent(cookieName);
       if (decodedName === name) {
-        return yield* _(decodeUriComponent(cookieValue));
+        return yield* decodeUriComponent(cookieValue);
       }
     }
 
-    return yield* _(Effect.fail(new CookieNotFoundError(name)));
+    return yield* Effect.fail(new CookieNotFoundError(name));
   });
 }
 
