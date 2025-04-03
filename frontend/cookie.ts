@@ -20,7 +20,7 @@ export function setCookie(name: string, value: string) {
 }
 
 export function getCookie(name: string) {
-  return Effect.gen(function* (_) {
+  return Effect.gen(function* () {
     const cookies = document.cookie.split("; ");
 
     for (const cookie of cookies) {
