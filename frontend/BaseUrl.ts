@@ -3,22 +3,22 @@ import { Context, Effect, Layer } from "effect";
 import * as WindowLocation from "./WindowLocation";
 
 export const getViteBaseUrl = Url.fromString("http://localhost:4002").pipe(
-  Effect.mapError((_) => new UrlError()),
+  Effect.mapError((_) => new InvalidUrlError()),
 );
 
 export const getComposeBaseUrl = Effect.gen(function* () {
   const location = yield* WindowLocation.WindowLocation;
   return yield* Url.fromString(yield* location.origin);
-}).pipe(Effect.mapError((_) => new UrlError()));
+}).pipe(Effect.mapError((_) => new InvalidUrlError()));
 
 export class BaseUrlProvider extends Context.Tag("@rgpt/BaseUrlProvider")<
   BaseUrlProvider,
   {
-    get: Effect.Effect<URL, UrlError>;
+    get: Effect.Effect<URL, InvalidUrlError>;
   }
 >() {}
 
-export class UrlError {
+export class InvalidUrlError {
   readonly _tag = "@rgpt/UrlError";
 }
 
