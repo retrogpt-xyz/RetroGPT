@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { googleLogout, useGoogleLogin } from "@react-oauth/google";
+import { /* googleLogout ,*/ useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
 import "./App.css";
@@ -36,8 +36,6 @@ function App() {
   const [userOwnedChats, setUserOwnedChats] = useState<
     { id: number; name: string }[]
   >([]);
-
-  const displayLoginOpts = false;
 
   const flushUserState = () => {
     setDisplayMessages([]);
@@ -78,11 +76,11 @@ function App() {
     },
   });
 
-  const logout = () => {
-    setSessionTokenCookieWrapper("__default__");
-    flushUserState();
-    googleLogout();
-  };
+  // const logout = () => {
+  // setSessionTokenCookieWrapper("__default__");
+  // flushUserState();
+  // googleLogout();
+  // };
 
   const syncMessages = async () => {
     if (!chatId) {
@@ -269,27 +267,6 @@ function App() {
       )}
       {/* Right column with app icons */}
       <div className="app-column">
-        {displayLoginOpts &&
-          (getSessionTokenCookieWrapper() != "__default__" ? (
-            <>
-              <button onClick={logout}>{"logout"}</button>
-            </>
-          ) : (
-            <button onClick={() => login()}>login</button>
-          ))}
-
-        {displayLoginOpts && (
-          <button onClick={() => setChatId(null)}>new chat</button>
-        )}
-
-        <div>
-          {displayLoginOpts &&
-            userOwnedChats.map(({ id: id, name: name }) => (
-              <button key={id} onClick={() => setChatId(id)}>
-                {name}
-              </button>
-            ))}
-        </div>
         <div className="app-column">
           {[
             {
