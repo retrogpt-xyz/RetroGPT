@@ -69,8 +69,8 @@ function App() {
     onSuccess: async (user_access_token) => {
       const authResult = await auth(user_access_token);
       if (authResult) {
-        setSessionTokenCookieWrapper(authResult.sessionToken);
-        setUserId(authResult.userId);
+        setSessionTokenCookieWrapper(authResult.session_token);
+        setUserId(authResult.user_id);
         flushUserState();
       }
     },
