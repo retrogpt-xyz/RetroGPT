@@ -6,12 +6,13 @@ import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import RightClick from "./RightClickMenu";
-import { auth } from "./auth";
+import * as Api from "./Api";
 import { format_api_request_url } from "./request";
 import {
   getSessionTokenCookieWrapper,
   setSessionTokenCookieWrapper,
 } from "./cookie";
+import { Effect } from "effect";
 
 interface DisplayMessage {
   text: string;
@@ -67,11 +68,17 @@ function App() {
 
   const login = useGoogleLogin({
     onSuccess: async (user_access_token) => {
-      const authResult = await auth(user_access_token.access_token);
-      if (authResult) {
-        setSessionTokenCookieWrapper(authResult.session_token);
-        setUserId(authResult.user_id);
+      try {
+        const { session_token, user_id } = await Effect.runPromise(
+          Api.authApi({
+            user_access_token: user_access_token.access_token,
+          }),
+        );
+        setSessionTokenCookieWrapper(session_token);
+        setUserId(user_id);
         flushUserState();
+      } catch (e) {
+        console.error(e);
       }
     },
   });
