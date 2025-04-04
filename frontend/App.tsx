@@ -67,7 +67,7 @@ function App() {
 
   const login = useGoogleLogin({
     onSuccess: async (user_access_token) => {
-      const authResult = await auth(user_access_token);
+      const authResult = await auth(user_access_token.access_token);
       if (authResult) {
         setSessionTokenCookieWrapper(authResult.session_token);
         setUserId(authResult.user_id);

@@ -1,4 +1,3 @@
-import * as OAuth from "@react-oauth/google";
 import { Effect, Schema } from "effect";
 import { formatApiUrl } from "./ApiUrlFormat";
 import { HttpBody, HttpClient } from "@effect/platform";
@@ -6,30 +5,30 @@ import { BrowserHttpClient } from "@effect/platform-browser";
 import * as BaseUrl from "./BaseUrl";
 import * as WindowLocation from "./WindowLocation";
 
-export const AuthSchema = Schema.Struct({
-  session_token: Schema.String,
-  user_id: Schema.Number,
-});
+const makePostEndpoint =
+  <DI, EI, RI, DO, EO, RO>(
+    inputSchema: Schema.Schema<DI, EI, RI>,
+    outputSchema: Schema.Schema<DO, EO, RO>,
+    slug: string,
+  ) =>
+  (bodyDecoded: DI, sessionToken?: string) =>
+    Effect.gen(function* () {
+      const url = yield* formatApiUrl(slug);
+      const client = yield* HttpClient.HttpClient;
+      const body = yield* HttpBody.jsonSchema(inputSchema)(bodyDecoded);
+      const response = yield* client.post(url, {
+        body: body,
+        headers: sessionToken ? { "X-Session-Token": sessionToken } : undefined,
+      });
+      return yield* Schema.decodeUnknown(outputSchema)(yield* response.json);
+    }).pipe(
+      Effect.provide(BrowserHttpClient.layerXMLHttpRequest),
+      Effect.provide(BaseUrl.layer),
+      Effect.provide(WindowLocation.layer),
+    );
 
-export type TokenResponse = Omit<
-  OAuth.TokenResponse,
-  "error" | "error_description" | "error_uri"
->;
-
-export const auth = (tokenResponse: TokenResponse) =>
-  Effect.gen(function* () {
-    const url = yield* formatApiUrl("/api/v0.0.1/auth");
-    const client = yield* HttpClient.HttpClient;
-    const response = yield* client.post(url, {
-      body: yield* HttpBody.json({
-        user_access_token: tokenResponse.access_token,
-      }),
-    });
-    const json = yield* response.json;
-    const parsed = yield* Schema.decodeUnknown(AuthSchema)(json);
-    return parsed;
-  }).pipe(
-    Effect.provide(BrowserHttpClient.layerXMLHttpRequest),
-    Effect.provide(BaseUrl.layer),
-    Effect.provide(WindowLocation.layer),
-  );
+export const authApi = makePostEndpoint(
+  Schema.Struct({ user_access_token: Schema.String }),
+  Schema.Struct({ session_token: Schema.String, user_id: Schema.Number }),
+  "/api/v0.0.1/auth",
+);
