@@ -63,6 +63,7 @@ impl User {
     ) -> Result<Vec<chat::Chat>, libserver::ServiceError> {
         let chats = schema::chats::table
             .filter(schema::chats::user_id.eq(self.user_id))
+            .filter(schema::chats::deleted.eq(false))
             .get_results(db)
             .await?;
         Ok(chats)

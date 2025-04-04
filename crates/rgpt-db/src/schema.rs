@@ -8,6 +8,7 @@ diesel::table! {
         created_at -> Timestamp,
         updated_at -> Timestamp,
         name -> Nullable<Varchar>,
+        deleted -> Bool,
     }
 }
 
