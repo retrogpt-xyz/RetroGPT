@@ -3,7 +3,6 @@ use std::sync::Arc;
 use libserver::{DynRoute, NOT_FOUND, PathPrefixRouter, Route, ServiceBuilder};
 use rgpt_cfg::Context;
 
-pub mod append_to_chat;
 pub mod attach;
 pub mod auth;
 pub mod chat_msgs;
@@ -19,7 +18,6 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
         .with_dyn_route(user_chats::route(cx.clone()))
         .with_dyn_route(prompt::route(cx.clone()))
         .with_dyn_route(attach::route(cx.clone()))
-        .with_dyn_route(append_to_chat::route(cx.clone()))
         .with_fallback(NOT_FOUND);
 
     Route::from_parts(router, service).make_dyn()

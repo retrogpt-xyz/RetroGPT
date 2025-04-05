@@ -160,17 +160,6 @@ function App() {
     };
 
     ws.onclose = async () => {
-      // Step 3: Append the complete response to chat
-      await fetch(format_api_request_url("v0.0.1/append_to_chat"), {
-        method: "POST",
-        body: JSON.stringify({
-          sender: "ai",
-          body: aiResponse,
-          chat_id: chat_id,
-        }),
-        headers,
-      });
-
       await syncUserOwnedChats();
       setChatId(chat_id);
     };
