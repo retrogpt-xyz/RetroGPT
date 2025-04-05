@@ -7,7 +7,6 @@ import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import RightClick from "./RightClickMenu";
 import * as Api from "./Api";
-import { format_api_request_url } from "./request";
 import {
   getSessionTokenCookieWrapper,
   setSessionTokenCookieWrapper,
@@ -51,12 +50,7 @@ function App() {
     }
 
     const { chats, user_id } = await Effect.runPromise(
-      Api.userChatsApi(
-        {
-          user_id: userId ? userId : undefined,
-        },
-        sessionToken,
-      ),
+      Api.userChatsApi({ user_id: userId }, sessionToken),
     );
 
     setUserOwnedChats([...chats]);
@@ -110,27 +104,15 @@ function App() {
       { text: "...", sender: "ai" as const },
     ]);
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-    headers["X-Session-Token"] = getSessionTokenCookieWrapper();
-
-    // Step 1: Create the response stream via the semver'd prompt endpoint
-    const response = await fetch(format_api_request_url("v0.0.1/prompt"), {
-      method: "POST",
-      body: JSON.stringify({
-        text: msg.text,
-        chat_id: msg.chatId,
-      }),
-      headers,
-    });
-
-    if (!response.ok) {
-      console.error("Failed to create prompt stream");
-      return;
-    }
-
-    const { chat_id, attach_token } = await response.json();
+    const { chat_id, attach_token } = await Effect.runPromise(
+      Api.promptApi(
+        {
+          text: msg.text,
+          chat_id: msg.chatId,
+        },
+        getSessionTokenCookieWrapper(),
+      ),
+    );
 
     // Build WebSocket URL with protocol, host, endpoint, and session token
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";

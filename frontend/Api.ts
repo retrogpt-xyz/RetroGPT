@@ -34,7 +34,7 @@ export const authApi = makePostEndpoint(
 );
 
 export const userChatsApi = makePostEndpoint(
-  Schema.Struct({ user_id: Schema.optional(Schema.Number) }),
+  Schema.Struct({ user_id: Schema.Union(Schema.Number, Schema.Null) }),
   Schema.Struct({
     chats: Schema.Array(
       Schema.Struct({
@@ -56,4 +56,16 @@ export const chatMsgsApi = makePostEndpoint(
     }),
   ),
   "/api/v0.0.1/chat_msgs",
+);
+
+export const promptApi = makePostEndpoint(
+  Schema.Struct({
+    text: Schema.String,
+    chat_id: Schema.Union(Schema.Number, Schema.Null),
+  }),
+  Schema.Struct({
+    chat_id: Schema.Number,
+    attach_token: Schema.String,
+  }),
+  "/api/v0.0.1/prompt",
 );
