@@ -94,26 +94,10 @@ function App() {
       return;
     }
 
-    fetch(format_api_request_url("v0.0.1/chat_msgs"), {
-      method: "POST",
-      headers: {
-        "X-Session-Token": getSessionTokenCookieWrapper(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ chat_id: chatId }),
-    }).then(async (resp) => {
-      const msgs: DisplayMessage[] = JSON.parse(await resp.text());
-      console.log(msgs);
-      console.log(displayMessages);
-      if (JSON.stringify(msgs) === JSON.stringify(displayMessages)) {
-        return;
-      }
-      console.log("got different messages from the server");
-      let chid = resp.headers.get("X-Chat-ID");
-      if (chid) {
-        if (JSON.parse(chid) == chatId) setDisplayMessages(msgs);
-      }
-    });
+    const msgs = await Effect.runPromise(
+      Api.chatMsgsApi({ chat_id: chatId }, getSessionTokenCookieWrapper()),
+    );
+    setDisplayMessages([...msgs]);
   };
 
   useEffect(() => {

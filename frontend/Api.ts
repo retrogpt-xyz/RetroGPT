@@ -46,3 +46,14 @@ export const userChatsApi = makePostEndpoint(
   }),
   "/api/v0.0.1/user_chats",
 );
+
+export const chatMsgsApi = makePostEndpoint(
+  Schema.Struct({ chat_id: Schema.Number }),
+  Schema.Array(
+    Schema.Struct({
+      text: Schema.String,
+      sender: Schema.Union(Schema.Literal("ai"), Schema.Literal("user")),
+    }),
+  ),
+  "/api/v0.0.1/chat_msgs",
+);
