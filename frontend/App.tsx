@@ -50,17 +50,16 @@ function App() {
       return;
     }
 
-    const resp = await fetch(format_api_request_url("v0.0.1/user_chats"), {
-      method: "POST",
-      body: JSON.stringify({ user_id: userId }),
-      headers: {
-        "X-Session-Token": sessionToken,
-        "Content-Type": "application/json",
-      },
-    });
-    if (resp.status !== 200) return;
-    const { chats, user_id } = await resp.json();
-    setUserOwnedChats(chats);
+    const { chats, user_id } = await Effect.runPromise(
+      Api.userChatsApi(
+        {
+          user_id: userId ? userId : undefined,
+        },
+        sessionToken,
+      ),
+    );
+
+    setUserOwnedChats([...chats]);
     if (user_id !== userId) {
       setUserId(user_id);
     }

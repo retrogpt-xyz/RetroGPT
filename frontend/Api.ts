@@ -32,3 +32,17 @@ export const authApi = makePostEndpoint(
   Schema.Struct({ session_token: Schema.String, user_id: Schema.Number }),
   "/api/v0.0.1/auth",
 );
+
+export const userChatsApi = makePostEndpoint(
+  Schema.Struct({ user_id: Schema.optional(Schema.Number) }),
+  Schema.Struct({
+    chats: Schema.Array(
+      Schema.Struct({
+        id: Schema.Number,
+        name: Schema.String,
+      }),
+    ),
+    user_id: Schema.Number,
+  }),
+  "/api/v0.0.1/user_chats",
+);
