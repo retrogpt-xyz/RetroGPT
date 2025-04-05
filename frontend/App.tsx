@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { googleLogout, useGoogleLogin } from "@react-oauth/google";
+import { /* googleLogout ,*/ useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
 import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import RightClick from "./RightClickMenu";
-import { auth } from "./auth";
-import { format_api_request_url } from "./request";
+import * as Api from "./Api";
 import {
   getSessionTokenCookieWrapper,
   setSessionTokenCookieWrapper,
 } from "./cookie";
+import { Effect } from "effect";
 
 interface DisplayMessage {
   text: string;
@@ -37,8 +37,6 @@ function App() {
     { id: number; name: string }[]
   >([]);
 
-  const displayLoginOpts = false;
-
   const flushUserState = () => {
     setDisplayMessages([]);
     setChatId(null);
@@ -51,17 +49,11 @@ function App() {
       return;
     }
 
-    const resp = await fetch(format_api_request_url("v0.0.1/user_chats"), {
-      method: "POST",
-      body: JSON.stringify({ user_id: userId }),
-      headers: {
-        "X-Session-Token": sessionToken,
-        "Content-Type": "application/json",
-      },
-    });
-    if (resp.status !== 200) return;
-    const { chats, user_id } = await resp.json();
-    setUserOwnedChats(chats);
+    const { chats, user_id } = await Effect.runPromise(
+      Api.userChatsApi({ user_id: userId }, sessionToken),
+    );
+
+    setUserOwnedChats([...chats]);
     if (user_id !== userId) {
       setUserId(user_id);
     }
@@ -69,20 +61,26 @@ function App() {
 
   const login = useGoogleLogin({
     onSuccess: async (user_access_token) => {
-      const authResult = await auth(user_access_token);
-      if (authResult) {
-        setSessionTokenCookieWrapper(authResult.sessionToken);
-        setUserId(authResult.userId);
+      try {
+        const { session_token, user_id } = await Effect.runPromise(
+          Api.authApi({
+            user_access_token: user_access_token.access_token,
+          }),
+        );
+        setSessionTokenCookieWrapper(session_token);
+        setUserId(user_id);
         flushUserState();
+      } catch (e) {
+        console.error(e);
       }
     },
   });
 
-  const logout = () => {
-    setSessionTokenCookieWrapper("__default__");
-    flushUserState();
-    googleLogout();
-  };
+  // const logout = () => {
+  // setSessionTokenCookieWrapper("__default__");
+  // flushUserState();
+  // googleLogout();
+  // };
 
   const syncMessages = async () => {
     if (!chatId) {
@@ -90,26 +88,10 @@ function App() {
       return;
     }
 
-    fetch(format_api_request_url("v0.0.1/chat_msgs"), {
-      method: "POST",
-      headers: {
-        "X-Session-Token": getSessionTokenCookieWrapper(),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ chat_id: chatId }),
-    }).then(async (resp) => {
-      const msgs: DisplayMessage[] = JSON.parse(await resp.text());
-      console.log(msgs);
-      console.log(displayMessages);
-      if (JSON.stringify(msgs) === JSON.stringify(displayMessages)) {
-        return;
-      }
-      console.log("got different messages from the server");
-      let chid = resp.headers.get("X-Chat-ID");
-      if (chid) {
-        if (JSON.parse(chid) == chatId) setDisplayMessages(msgs);
-      }
-    });
+    const msgs = await Effect.runPromise(
+      Api.chatMsgsApi({ chat_id: chatId }, getSessionTokenCookieWrapper()),
+    );
+    setDisplayMessages([...msgs]);
   };
 
   useEffect(() => {
@@ -122,27 +104,15 @@ function App() {
       { text: "...", sender: "ai" as const },
     ]);
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-    headers["X-Session-Token"] = getSessionTokenCookieWrapper();
-
-    // Step 1: Create the response stream via the semver'd prompt endpoint
-    const response = await fetch(format_api_request_url("v0.0.1/prompt"), {
-      method: "POST",
-      body: JSON.stringify({
-        text: msg.text,
-        chat_id: msg.chatId,
-      }),
-      headers,
-    });
-
-    if (!response.ok) {
-      console.error("Failed to create prompt stream");
-      return;
-    }
-
-    const { chat_id, attach_token } = await response.json();
+    const { chat_id, attach_token } = await Effect.runPromise(
+      Api.promptApi(
+        {
+          text: msg.text,
+          chat_id: msg.chatId,
+        },
+        getSessionTokenCookieWrapper(),
+      ),
+    );
 
     // Build WebSocket URL with protocol, host, endpoint, and session token
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -172,17 +142,6 @@ function App() {
     };
 
     ws.onclose = async () => {
-      // Step 3: Append the complete response to chat
-      await fetch(format_api_request_url("v0.0.1/append_to_chat"), {
-        method: "POST",
-        body: JSON.stringify({
-          sender: "ai",
-          body: aiResponse,
-          chat_id: chat_id,
-        }),
-        headers,
-      });
-
       await syncUserOwnedChats();
       setChatId(chat_id);
     };
@@ -269,27 +228,6 @@ function App() {
       )}
       {/* Right column with app icons */}
       <div className="app-column">
-        {displayLoginOpts &&
-          (getSessionTokenCookieWrapper() != "__default__" ? (
-            <>
-              <button onClick={logout}>{"logout"}</button>
-            </>
-          ) : (
-            <button onClick={() => login()}>login</button>
-          ))}
-
-        {displayLoginOpts && (
-          <button onClick={() => setChatId(null)}>new chat</button>
-        )}
-
-        <div>
-          {displayLoginOpts &&
-            userOwnedChats.map(({ id: id, name: name }) => (
-              <button key={id} onClick={() => setChatId(id)}>
-                {name}
-              </button>
-            ))}
-        </div>
         <div className="app-column">
           {[
             {

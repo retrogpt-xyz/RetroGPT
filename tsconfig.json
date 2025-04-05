@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "exactOptionalPropertyTypes": true
   },
   "files": [],
   "references": [

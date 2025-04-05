@@ -22,10 +22,10 @@ pub async fn chat_msgs(req: Request, cx: Arc<Context>) -> libserver::ServiceResu
     let chat = Chat::get_by_id(cx.db(), chat_id).await?;
     let _session = crate::validate_session_header(cx.db(), &headers, Some(chat.user_id)).await?;
 
-    let msg = chat.msg_chain(cx.db()).await?;
+    let msgs = chat.msg_chain(cx.db()).await?;
 
     let fmted_mgs = json!(
-        msg.into_iter()
+        msgs.into_iter()
             .map(|msg| {
                 json!({
                     "text": msg.body,
