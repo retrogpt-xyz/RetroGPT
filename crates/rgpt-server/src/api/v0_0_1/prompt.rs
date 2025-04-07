@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use async_openai::types::{
     ChatCompletionRequestAssistantMessageArgs, ChatCompletionRequestMessage,
@@ -235,7 +235,7 @@ pub async fn stream_model_response(
 
 #[derive(Deserialize)]
 struct PromptServiceInput<'a> {
-    pub text: &'a str,
+    pub text: Cow<'a, str>,
     pub chat_id: Option<i32>,
 }
 

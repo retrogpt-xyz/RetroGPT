@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use libserver::{DynRoute, PathEqRouter, Route, single_frame_body};
 use rgpt_cfg::Context;
@@ -105,5 +105,5 @@ impl tower::Service<libserver::Request> for AuthService {
 
 #[derive(Deserialize)]
 struct AuthServiceInput<'a> {
-    user_access_token: &'a str,
+    user_access_token: Cow<'a, str>,
 }
