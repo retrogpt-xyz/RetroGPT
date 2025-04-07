@@ -2,7 +2,6 @@
 resolver = "3"
 members = [
   "crates/librgpt",
-  "crates/libserver",
   "crates/rgpt-api",
   "crates/rgpt-cfg",
   "crates/rgpt-db",
@@ -17,11 +16,12 @@ edition = "2024"
 
 [workspace.dependencies]
 librgpt = { path = "crates/librgpt" }
-libserver = { path = "crates/libserver" }
 rgpt-db = { path = "crates/rgpt-db" }
 rgpt-server = { path = "crates/rgpt-server" }
 rgpt-cfg = { path = "crates/rgpt-cfg" }
 rgpt-stream = { path = "crates/rgpt-stream" }
+
+libserver = { git = "https://github.com/JackDyre/libserver", rev = "c7aa03a" }
 
 async-openai = "0.28.0"
 bytes = "1.10.0"
