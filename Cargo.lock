@@ -1031,6 +1031,7 @@ dependencies = [
 [[package]]
 name = "libserver"
 version = "0.1.0"
+source = "git+https://github.com/JackDyre/libserver?rev=c7aa03a#c7aa03ade2ff8a4bcefbcd0c39357fd758d27234"
 dependencies = [
  "bytes",
  "futures",
