@@ -112,14 +112,9 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={() => login()}>
                 Login
               </div>
-   <MenuBar
-     setChatId={setChatId}
-     userOwnedChats={userOwnedChats}
-     login={login}
-     setWindowVisible={setWindowVisible}
-     syncUserOwnedChats={syncUserOwnedChats}
-     logout={logout}
-   />
+   <div className="dropdown-item" onClick={() => logout()}>
+     Logout
+   </div>
             </div>
           )}
         </div>
