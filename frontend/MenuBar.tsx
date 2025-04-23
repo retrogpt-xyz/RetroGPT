@@ -5,6 +5,7 @@ interface MenuBarProps {
   setChatId: (chatId: number | null) => void;
   userOwnedChats: { id: number; name: string }[];
   login: () => void;
+  logout: () => void;
   setWindowVisible: (visible: boolean) => void;
   syncUserOwnedChats: () => void;
 }
@@ -13,6 +14,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   setChatId,
   userOwnedChats,
   login,
+  logout, 
   setWindowVisible,
   syncUserOwnedChats,
 }) => {
@@ -110,6 +112,9 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={() => login()}>
                 Login
               </div>
+   <div className="dropdown-item" onClick={() => logout()}>
+     Logout
+   </div>
             </div>
           )}
         </div>
