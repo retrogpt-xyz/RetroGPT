@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { /* googleLogout ,*/ useGoogleLogin } from "@react-oauth/google";
+import { googleLogout ,useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
 import "./App.css";
@@ -23,6 +23,7 @@ interface BackendQueryMessage {
   chatId: number | null;
   sessionToken: string;
 }
+
 
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
@@ -76,11 +77,11 @@ function App() {
     },
   });
 
-  // const logout = () => {
-  // setSessionTokenCookieWrapper("__default__");
-  // flushUserState();
-  // googleLogout();
-  // };
+  const logout = () => {
+  setSessionTokenCookieWrapper("__default__");
+  flushUserState();
+  googleLogout();
+  };
 
   const syncMessages = async () => {
     if (!chatId) {
@@ -184,13 +185,13 @@ function App() {
       {windowVisible && ( // <-- Conditionally render main window
         <div className="main-window">
           <div>
-            <MenuBar
-              setChatId={setChatId}
-              userOwnedChats={userOwnedChats} // Pass the state value, not the setter
-              login={login}
-              setWindowVisible={setWindowVisible}
-              syncUserOwnedChats={syncUserOwnedChats}
-            />
+          <MenuBar
+  setChatId={setChatId}
+  userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
+  login={login}
+  setWindowVisible={setWindowVisible}
+  syncUserOwnedChats={syncUserOwnedChats}
+/>
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
           <div className="header-under">How can I help?</div>
@@ -283,3 +284,4 @@ function App() {
 }
 
 export default App;
+
