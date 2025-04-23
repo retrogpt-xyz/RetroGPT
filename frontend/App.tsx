@@ -186,12 +186,13 @@ function App() {
         <div className="main-window">
           <div>
           <MenuBar
-  setChatId={setChatId}
-  userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
-  login={login}
-  setWindowVisible={setWindowVisible}
-  syncUserOwnedChats={syncUserOwnedChats}
-/>
+            setChatId={setChatId}
+            userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
+            login={login}
+            logout={logout}
+            setWindowVisible={setWindowVisible}
+            syncUserOwnedChats={syncUserOwnedChats}
+          />
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
           <div className="header-under">How can I help?</div>
