@@ -5,13 +5,13 @@ import { get_api_host } from "./request";
 import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
-import RightClick from "./RightClickMenu";
 import * as Api from "./Api";
 import {
   getSessionTokenCookieWrapper,
   setSessionTokenCookieWrapper,
 } from "./cookie";
 import { Effect } from "effect";
+import * as req from "./request"
 
 interface DisplayMessage {
   text: string;
@@ -177,9 +177,6 @@ function App() {
         <Dock />
       </div>
 
-      <div>
-        <RightClick />
-      </div>
 
       {/* Center window - Chat Interface */}
       {windowVisible && ( // <-- Conditionally render main window
