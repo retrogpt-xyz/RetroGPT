@@ -19,7 +19,6 @@ pub fn route(cx: Arc<Context>) -> DynRoute {
         .with_dyn_route(user_chats::route(cx.clone()))
         .with_dyn_route(prompt::route(cx.clone()))
         .with_dyn_route(attach::route(cx.clone()))
-        .with_dyn_route(append_to_chat::route(cx.clone()))
         .with_dyn_route(delete_chat::route(cx.clone()))
         .with_fallback(NOT_FOUND);
 

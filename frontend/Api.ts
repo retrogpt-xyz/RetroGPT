@@ -69,3 +69,11 @@ export const promptApi = makePostEndpoint(
   }),
   "/api/v0.0.1/prompt",
 );
+
+export const deleteChatApi = makePostEndpoint(
+  Schema.Struct({
+    chat_id: Schema.Number,
+  }),
+  Schema.Struct({}),
+  "/api/v0.0.1/delete_chat",
+);

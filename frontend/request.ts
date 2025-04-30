@@ -1,3 +1,6 @@
+import { Effect } from "effect";
+import { deleteChatApi } from "./Api";
+
 export function get_api_host(): string {
   const is_dev = import.meta.env.DEV;
 
@@ -19,20 +22,5 @@ export function format_api_request_url(slug: string) {
 }
 
 export async function delete_chat(chat_id: number, sessionToken: string) {
-  const url = format_api_request_url("v0.0.1/delete_chat");
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Session-Token": sessionToken,
-    },
-    body: JSON.stringify({ chat_id }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to delete chat: ${response.status}`);
-  }
-
-  return true;
+  await Effect.runPromise(deleteChatApi({ chat_id: chat_id }, sessionToken));
 }
