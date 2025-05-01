@@ -5,6 +5,7 @@ import { get_api_host } from "./request";
 import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
+import Files from "./FileExplorer";
 import * as Api from "./Api";
 import {
   getSessionTokenCookieWrapper,
@@ -27,6 +28,7 @@ interface BackendQueryMessage {
 
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
+  const [showFileExplorer, setShowFileExplorer] = useState(false);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -189,6 +191,11 @@ function App() {
             logout={logout}
             setWindowVisible={setWindowVisible}
             syncUserOwnedChats={syncUserOwnedChats}
+          />
+            <div>
+          <Files 
+          visible={showFileExplorer} 
+          onClose={() => setShowFileExplorer(false)} 
           />
           </div>
           <div className="header-bar">WELCOME TO RETROGPT</div>
