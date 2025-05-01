@@ -63,7 +63,7 @@ services:
   nginx-prod:
     profiles:
       - prod
-    image: nginx:latest
+    image: nginx:alpine
     container_name: nginx-prod
     volumes:
       - ./nginx.prod.conf:/etc/nginx/nginx.template:ro
