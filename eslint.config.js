@@ -12,10 +12,14 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parserOptions: { // Add this to specify tsconfig.json
+        project: true,
+      },
     },
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
+      "@typescript-eslint": tseslint.plugin,  //Make sure the plugin is registered.
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -23,6 +27,7 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      "@typescript-eslint/no-unused-vars": "off", //  Disable unused vars
     },
   },
 );

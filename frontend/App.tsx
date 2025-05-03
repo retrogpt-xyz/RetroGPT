@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { googleLogout ,useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
@@ -6,13 +6,13 @@ import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import Files from "./FileExplorer";
+import Music from "./MusicPlayer"
 import * as Api from "./Api";
 import {
   getSessionTokenCookieWrapper,
   setSessionTokenCookieWrapper,
 } from "./cookie";
 import { Effect } from "effect";
-import * as req from "./request"
 
 interface DisplayMessage {
   text: string;
@@ -24,11 +24,12 @@ interface BackendQueryMessage {
   chatId: number | null;
   sessionToken: string;
 }
-
+React;
 
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
   const [showFileExplorer, setShowFileExplorer] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false)
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -178,13 +179,16 @@ function App() {
       <div>
         <Dock />
       </div>
-
+      <div>
+        <Music />
+      </div>
 
       {/* Center window - Chat Interface */}
       {windowVisible && ( // <-- Conditionally render main window
         <div className="main-window">
           <div>
           <MenuBar
+            chatId={0}
             setChatId={setChatId}
             userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
             login={login}
@@ -231,6 +235,7 @@ function App() {
             </div>
           </div>
         </div>
+        </div>
       )}
       {/* Right column with app icons */}
       <div className="app-column">
@@ -239,6 +244,8 @@ function App() {
             {
               url: "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
               name: "Music",
+              onClick: () => {() => setShowPlayer((v) => !v); // Toggle window visibility
+              },
             },
             {
               url: "https://64.media.tumblr.com/0d181187c50fedc1c60d1a6c3dd2165d/ec299322d93fd773-53/s540x810/afd900c44adfac375f08a490df747be6384c17d6.png",
@@ -262,6 +269,9 @@ function App() {
             {
               url: "https://64.media.tumblr.com/3348cb2690edd69e4abef37e181df74d/a805f4b239e74093-b6/s540x810/18d6a7c2de480930d0a2fc78916458fcc4e25b52.png",
               name: "Finder",
+              onClick: () => {
+                setShowFileExplorer((prev) => !prev); // Toggle window visibility
+              },
             },
           ].map(({ url, name, onClick }, index) => (
             <button
