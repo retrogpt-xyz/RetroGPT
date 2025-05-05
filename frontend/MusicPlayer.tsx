@@ -121,11 +121,20 @@ const CDPlayer: React.FC = () => {
       url: URL.createObjectURL(f),
       name: f.name,
     }))
+    // Clean up previous object URLs before replacing them
+    tracks.forEach(track => URL.revokeObjectURL(track.url))
     setTracks(newTracks)
     setCurrentTrack(0)
     setTime(0)
     setIsPlaying(false)
   }
+
+  useEffect(() => {
+    // existing code...
+    return () => {
+      tracks.forEach(track => URL.revokeObjectURL(track.url))
+    }
+  }, [tracks])
 
   // transport controls
   const handlePlayPause = () => {
