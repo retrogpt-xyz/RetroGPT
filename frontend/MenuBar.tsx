@@ -31,8 +31,14 @@ const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   const handleDeleteChat = async () => {
-    deleteChatApi({ chat_id: chatId });
-    setChatId(null);
+    try {
+      await deleteChatApi({ chat_id: chatId });
+      setChatId(null);
+      // Optional: Add user feedback on successful deletion
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
+      // Optional: Add user feedback on deletion failure
+    }
   };
 
   const handleOpenChat = () => {
