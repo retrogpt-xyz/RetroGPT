@@ -47,7 +47,7 @@ services:
   nginx-dev:
     profiles:
       - dev
-    image: nginx:alpine
+    image: nginx:latest
     container_name: nginx-dev
     volumes:
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
