@@ -49,11 +49,18 @@ const CDPlayer: React.FC = () => {
         setIsPlaying(false)
       }
     }
+    const onError = (e: ErrorEvent) => {
+      console.error('Audio playback error:', e)
+      setIsPlaying(false)
+      // Optionally show an error message to the user
+    }
     audio.addEventListener('timeupdate', onTimeUpdate)
     audio.addEventListener('ended', onEnded)
+    audio.addEventListener('error', onError)
     return () => {
       audio.removeEventListener('timeupdate', onTimeUpdate)
       audio.removeEventListener('ended', onEnded)
+      audio.removeEventListener('error', onError)
     }
   }, [currentTrack, isPlaying, tracks.length])
 
