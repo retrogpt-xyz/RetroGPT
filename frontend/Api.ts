@@ -3,6 +3,7 @@ import { formatApiUrl } from "./ApiUrlFormat";
 import { HttpBody, HttpClient } from "@effect/platform";
 import { BrowserHttpClient } from "@effect/platform-browser";
 import * as BaseUrl from "./BaseUrl";
+import * as WindowLocation from "./WindowLocation";
 
 
 const makePostEndpoint =

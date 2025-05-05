@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { googleLogout ,useGoogleLogin } from "@react-oauth/google";
+import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
 import "./App.css";
 import MenuBar from "./MenuBar";
 import Dock from "./Dockbar";
 import Files from "./FileExplorer";
-import Music from "./MusicPlayer"
+import Music from "./MusicPlayer";
 import * as Api from "./Api";
 import {
   getSessionTokenCookieWrapper,
@@ -29,7 +29,7 @@ React;
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
   const [showFileExplorer, setShowFileExplorer] = useState(false);
-  const [showPlayer, setShowPlayer] = useState(false)
+  const [_, setShowPlayer] = useState(false);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -81,9 +81,9 @@ function App() {
   });
 
   const logout = () => {
-  setSessionTokenCookieWrapper("__default__");
-  flushUserState();
-  googleLogout();
+    setSessionTokenCookieWrapper("__default__");
+    flushUserState();
+    googleLogout();
   };
 
   const syncMessages = async () => {
@@ -187,54 +187,56 @@ function App() {
       {windowVisible && ( // <-- Conditionally render main window
         <div className="main-window">
           <div>
-          <MenuBar
-            chatId={0}
-            setChatId={setChatId}
-            userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
-            login={login}
-            logout={logout}
-            setWindowVisible={setWindowVisible}
-            syncUserOwnedChats={syncUserOwnedChats}
-          />
+            <MenuBar
+              chatId={0}
+              setChatId={setChatId}
+              userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
+              login={login}
+              logout={logout}
+              setWindowVisible={setWindowVisible}
+              syncUserOwnedChats={syncUserOwnedChats}
+            />
             <div>
-          <Files 
-          visible={showFileExplorer} 
-          onClose={() => setShowFileExplorer(false)} 
-          />
-          </div>
-          <div className="header-bar">WELCOME TO RETROGPT</div>
-          <div className="header-under">How can I help?</div>
-          <div className="content-area">
-            <div className="chat-window">
-              <div className="chat-messages">
-                {displayMessages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`chat-message ${
-                      message.sender === "user" ? "user-message" : "ai-message"
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                ))}
-              </div>
-              <div className="chat-input">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder="Type your message..."
-                />
-                <button onClick={handleSendMessage}>Send</button>
+              <Files
+                visible={showFileExplorer}
+                onClose={() => setShowFileExplorer(false)}
+              />
+            </div>
+            <div className="header-bar">WELCOME TO RETROGPT</div>
+            <div className="header-under">How can I help?</div>
+            <div className="content-area">
+              <div className="chat-window">
+                <div className="chat-messages">
+                  {displayMessages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`chat-message ${
+                        message.sender === "user"
+                          ? "user-message"
+                          : "ai-message"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  ))}
+                </div>
+                <div className="chat-input">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type your message..."
+                  />
+                  <button onClick={handleSendMessage}>Send</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
       )}
       {/* Right column with app icons */}
@@ -244,7 +246,8 @@ function App() {
             {
               url: "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
               name: "Music",
-              onClick: () => {() => setShowPlayer((v) => !v); // Toggle window visibility
+              onClick: () => {
+                () => setShowPlayer((v) => !v); // Toggle window visibility
               },
             },
             {
@@ -299,4 +302,3 @@ function App() {
 }
 
 export default App;
-
