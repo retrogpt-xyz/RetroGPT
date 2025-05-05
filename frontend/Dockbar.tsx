@@ -40,7 +40,7 @@ const Dock = () => {
   const dockItems: DockItem[] = [
     {
       id: 1,
-      icon: "/Users/bennett_teitle/Documents/GitHub/RetroGPT/frontend/assets/generated-image.png",
+      icon: "/assets/generated-image.png",
       label: "Get Started",
     },
     {
