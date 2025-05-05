@@ -154,7 +154,60 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
             ? `Selected: ${selectedFile}`
             : `${currentItems.length} items (${folders.length} folders, ${files.length} files)`}
         </div>
-        <div className="resize-handle"></div>
+// inside your FileExplorer component in frontend/FileExplorer.tsx
+
+//–– Add these hooks and handlers above your return
+const [windowSize, setWindowSize] = useState({ width: 600, height: 400 });
+const [isResizing, setIsResizing] = useState(false);
+const resizeStart = useRef({ x: 0, y: 0 });
+
+useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
+    const newWidth = windowSize.width + (e.clientX - resizeStart.current.x);
+    const newHeight = windowSize.height + (e.clientY - resizeStart.current.y);
+    setWindowSize({
+      width: Math.max(300, newWidth),
+      height: Math.max(200, newHeight),
+    });
+    resizeStart.current = { x: e.clientX, y: e.clientY };
+  };
+  const handleMouseUp = () => {
+    setIsResizing(false);
+  };
+
+  if (isResizing) {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }
+
+  return () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [isResizing, windowSize]);
+
+const handleResizeStart = (e: React.MouseEvent) => {
+  e.preventDefault();
+  setIsResizing(true);
+  resizeStart.current = { x: e.clientX, y: e.clientY };
+};
+
+//–– Then in your JSX
+return (
+  <div className="popup-overlay">
+    <div
+      className="popup-window file-explorer"
+      style={{ width: `${windowSize.width}px`, height: `${windowSize.height}px` }}
+    >
+      {/* ... existing content ... */}
+      <div
+        className="resize-handle"
+        onMouseDown={handleResizeStart}
+      ></div>
+    </div>
+  </div>
+);
       </div>
     </div>
   );
