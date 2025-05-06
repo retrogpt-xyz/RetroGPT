@@ -5,7 +5,6 @@ import { BrowserHttpClient } from "@effect/platform-browser";
 import * as BaseUrl from "./BaseUrl";
 import * as WindowLocation from "./WindowLocation";
 
-
 const makePostEndpoint =
   <DI, EI, RI, DO, EO, RO>(
     inputSchema: Schema.Schema<DI, EI, RI>,
@@ -75,6 +74,6 @@ export const deleteChatApi = makePostEndpoint(
   Schema.Struct({
     chat_id: Schema.Number,
   }),
-  Schema.Struct({}),
+  Schema.Void,
   "/api/v0.0.1/delete_chat",
 );

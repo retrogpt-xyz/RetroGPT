@@ -1,9 +1,11 @@
-import React, { useState, } from "react";
+import React, { useState } from "react";
 import "./MenuBar.css";
 import { deleteChatApi } from "./Api";
+import { Effect } from "effect";
+import { getSessionTokenCookieWrapper } from "./cookie";
 React;
 interface MenuBarProps {
-  chatId: number,
+  chatId: number | null;
   setChatId: (chatId: number | null) => void;
   userOwnedChats: { id: number; name: string }[];
   login: () => void;
@@ -17,7 +19,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   setChatId,
   userOwnedChats,
   login,
-  logout, 
+  logout,
   setWindowVisible,
   syncUserOwnedChats,
 }) => {
@@ -31,8 +33,13 @@ const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   const handleDeleteChat = async () => {
+    if (!chatId) return;
     try {
-      await deleteChatApi({ chat_id: chatId });
+      await deleteChatApi(
+        { chat_id: chatId },
+        getSessionTokenCookieWrapper(),
+      ).pipe(Effect.runPromise);
+
       setChatId(null);
       // Optional: Add user feedback on successful deletion
     } catch (error) {
@@ -67,7 +74,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={handleOpenChat}>
                 Open
               </div>
-              <div className="dropdown-item" onClick={(handleDeleteChat)}>
+              <div className="dropdown-item" onClick={handleDeleteChat}>
                 Delete
               </div>
               <div
@@ -129,9 +136,9 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={() => login()}>
                 Login
               </div>
-   <div className="dropdown-item" onClick={() => logout()}>
-     Logout
-   </div>
+              <div className="dropdown-item" onClick={() => logout()}>
+                Logout
+              </div>
             </div>
           )}
         </div>
