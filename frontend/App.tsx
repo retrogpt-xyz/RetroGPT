@@ -188,7 +188,7 @@ function App() {
         <div className="main-window">
           <div>
             <MenuBar
-              chatId={0}
+              chatId={chatId}
               setChatId={setChatId}
               userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
               login={login}

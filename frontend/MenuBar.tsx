@@ -3,7 +3,7 @@ import "./MenuBar.css";
 import { deleteChatApi } from "./Api";
 React;
 interface MenuBarProps {
-  chatId: number,
+  chatId: number | null;
   setChatId: (chatId: number | null) => void;
   userOwnedChats: { id: number; name: string }[];
   login: () => void;
@@ -31,8 +31,13 @@ const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   const handleDeleteChat = async () => {
+    if (!chatId) return;
     try {
-      await deleteChatApi({ chat_id: chatId });
+      await deleteChatApi(
+        { chat_id: chatId },
+        getSessionTokenCookieWrapper(),
+      ).pipe(Effect.runPromise);
+
       setChatId(null);
       // Optional: Add user feedback on successful deletion
     } catch (error) {
