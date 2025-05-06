@@ -1,7 +1,9 @@
-import { useState } from "react";
+import React, { useState, } from "react";
 import "./MenuBar.css";
-
+import { deleteChatApi } from "./Api";
+React;
 interface MenuBarProps {
+  chatId: number,
   setChatId: (chatId: number | null) => void;
   userOwnedChats: { id: number; name: string }[];
   login: () => void;
@@ -11,6 +13,7 @@ interface MenuBarProps {
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
+  chatId,
   setChatId,
   userOwnedChats,
   login,
@@ -25,6 +28,17 @@ const MenuBar: React.FC<MenuBarProps> = ({
 
   const toggleMenu = (menu: "file" | "edit" | "window" | "save") => {
     setOpenMenu(openMenu === menu ? null : menu);
+  };
+
+  const handleDeleteChat = async () => {
+    try {
+      await deleteChatApi({ chat_id: chatId });
+      setChatId(null);
+      // Optional: Add user feedback on successful deletion
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
+      // Optional: Add user feedback on deletion failure
+    }
   };
 
   const handleOpenChat = () => {
@@ -52,6 +66,9 @@ const MenuBar: React.FC<MenuBarProps> = ({
               </div>
               <div className="dropdown-item" onClick={handleOpenChat}>
                 Open
+              </div>
+              <div className="dropdown-item" onClick={(handleDeleteChat)}>
+                Delete
               </div>
               <div
                 className="dropdown-item"
