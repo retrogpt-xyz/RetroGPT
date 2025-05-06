@@ -75,6 +75,6 @@ export const deleteChatApi = makePostEndpoint(
   Schema.Struct({
     chat_id: Schema.Number,
   }),
-  Schema.Struct({}),
+  Schema.Void,
   "/api/v0.0.1/delete_chat",
 );
