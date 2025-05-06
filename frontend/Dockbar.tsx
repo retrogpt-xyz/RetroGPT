@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Dockbar.css";
+import GeneratedImage from "./assets/generated-image.png";
 
 interface DockItem {
   id: number;
@@ -36,11 +37,10 @@ const Dock = () => {
     });
   };
 
-
   const dockItems: DockItem[] = [
     {
       id: 1,
-      icon: "/assets/generated-image.png",
+      icon: GeneratedImage,
       label: "Get Started",
     },
     {
