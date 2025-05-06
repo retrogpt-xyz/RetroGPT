@@ -5,7 +5,6 @@ import { BrowserHttpClient } from "@effect/platform-browser";
 import * as BaseUrl from "./BaseUrl";
 import * as WindowLocation from "./WindowLocation";
 
-
 const makePostEndpoint =
   <DI, EI, RI, DO, EO, RO>(
     inputSchema: Schema.Schema<DI, EI, RI>,

@@ -20,7 +20,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
   const resizeStart = useRef({ x: 0, y: 0 });
 
   const fileStructure: Record<string, FileItem[]> = {
-    "Home": [
+    Home: [
       { name: "Desktop", type: "folder" },
       { name: "Documents", type: "folder" },
       { name: "Downloads", type: "folder" },
@@ -29,7 +29,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
       { name: "Videos", type: "folder" },
       { name: "Chats", type: "folder" },
     ],
-    "Desktop": [
+    Desktop: [
       { name: "Recycle Bin", type: "folder" },
       { name: "My Computer", type: "folder" },
       { name: "Network", type: "folder" },
@@ -38,7 +38,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
       { name: "Presentation.ppt", type: "file" },
       { name: "Budget.xls", type: "file" },
     ],
-    "Documents": [
+    Documents: [
       { name: "Work", type: "folder" },
       { name: "Personal", type: "folder" },
       { name: "report.pdf", type: "file" },
@@ -46,7 +46,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
       { name: "contract.docx", type: "file" },
       { name: "notes.txt", type: "file" },
     ],
-    "Chats": [
+    Chats: [
       { name: "General", type: "folder" },
       { name: "Private", type: "folder" },
       { name: "Archive", type: "folder" },
@@ -54,12 +54,12 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
       { name: "settings.ini", type: "file" },
       { name: "backup.zip", type: "file" },
     ],
-    "General": [
+    General: [
       { name: "welcome.txt", type: "file" },
       { name: "rules.txt", type: "file" },
       { name: "faq.pdf", type: "file" },
     ],
-    "Private": [
+    Private: [
       { name: "user1_chat.log", type: "file" },
       { name: "user2_chat.log", type: "file" },
       { name: "meeting_notes.doc", type: "file" },
@@ -98,19 +98,19 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
       });
       resizeStart.current = { x: e.clientX, y: e.clientY };
     };
-    
+
     const handleMouseUp = () => {
       setIsResizing(false);
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing, windowSize]);
 
@@ -123,14 +123,17 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
   if (!visible) return null;
 
   const currentItems = getCurrentFolder();
-  const folders = currentItems.filter(item => item.type === "folder");
-  const files = currentItems.filter(item => item.type === "file");
+  const folders = currentItems.filter((item) => item.type === "folder");
+  const files = currentItems.filter((item) => item.type === "file");
 
   return (
     <div className="popup-overlay">
-      <div 
+      <div
         className="popup-window file-explorer"
-        style={{ width: `${windowSize.width}px`, height: `${windowSize.height}px` }}
+        style={{
+          width: `${windowSize.width}px`,
+          height: `${windowSize.height}px`,
+        }}
       >
         <div className="popup-header">
           <span>File Explorer - {currentPath.join(" > ")}</span>
@@ -193,11 +196,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ visible, onClose }) => {
             ? `Selected: ${selectedFile}`
             : `${currentItems.length} items (${folders.length} folders, ${files.length} files)`}
         </div>
-        
-        <div
-          className="resize-handle"
-          onMouseDown={handleResizeStart}
-        ></div>
+
+        <div className="resize-handle" onMouseDown={handleResizeStart}></div>
       </div>
     </div>
   );

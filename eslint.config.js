@@ -12,14 +12,15 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
-      parserOptions: { // Add this to specify tsconfig.json
+      parserOptions: {
+        // Add this to specify tsconfig.json
         project: true,
       },
     },
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
-      "@typescript-eslint": tseslint.plugin,  //Make sure the plugin is registered.
+      "@typescript-eslint": tseslint.plugin, //Make sure the plugin is registered.
     },
     rules: {
       ...reactHooks.configs.recommended.rules,

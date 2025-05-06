@@ -1,6 +1,8 @@
-import React, { useState, } from "react";
+import React, { useState } from "react";
 import "./MenuBar.css";
 import { deleteChatApi } from "./Api";
+import { Effect } from "effect";
+import { getSessionTokenCookieWrapper } from "./cookie";
 React;
 interface MenuBarProps {
   chatId: number | null;
@@ -17,7 +19,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
   setChatId,
   userOwnedChats,
   login,
-  logout, 
+  logout,
   setWindowVisible,
   syncUserOwnedChats,
 }) => {
@@ -72,7 +74,7 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={handleOpenChat}>
                 Open
               </div>
-              <div className="dropdown-item" onClick={(handleDeleteChat)}>
+              <div className="dropdown-item" onClick={handleDeleteChat}>
                 Delete
               </div>
               <div
@@ -134,9 +136,9 @@ const MenuBar: React.FC<MenuBarProps> = ({
               <div className="dropdown-item" onClick={() => login()}>
                 Login
               </div>
-   <div className="dropdown-item" onClick={() => logout()}>
-     Logout
-   </div>
+              <div className="dropdown-item" onClick={() => logout()}>
+                Logout
+              </div>
             </div>
           )}
         </div>

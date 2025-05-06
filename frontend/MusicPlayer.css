@@ -29,7 +29,7 @@
 .menubar-menu span {
   font-size: 12px;
   padding: 0 2px;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
 
 .dropdown {
@@ -54,7 +54,7 @@
   font-size: 12px;
   white-space: nowrap;
   cursor: default;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
 
 .dropdown li:hover {
@@ -74,7 +74,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
 
 .cdplayer-controls {
@@ -95,7 +95,7 @@
   border-right: 2px solid #000;
   font-size: 14px;
   cursor: pointer;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
 
 .button:disabled {
@@ -107,17 +107,17 @@
   display: flex;
   align-items: center;
   margin: 2px 4px;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
 
 .cdplayer-info-row label {
   width: 50px;
   font-size: 12px;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
 
 .cdplayer-info-row select,
-.cdplayer-info-row input[type='text'] {
+.cdplayer-info-row input[type="text"] {
   flex: 1;
   height: 18px;
   margin-left: 2px;
@@ -128,5 +128,5 @@
   border-bottom: 2px solid #000;
   border-right: 2px solid #000;
   background: #fff;
-  font-family: 'w95-typeface', sans-serif; /* Your font */
+  font-family: "w95-typeface", sans-serif; /* Your font */
 }
