@@ -124,17 +124,34 @@ button:hover {
 }
 
 .main-window {
-  margin-right: 150px;
+  margin-right: 150px; /* This might need adjustment or removal depending on desired layout */
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* MenuBar on top, main-window-body below */
   background: #c0c0c0;
   border: 3px solid #808080;
   min-height: 300px;
   box-shadow:
     2px 2px 0 #fff,
     -2px -2px 0 #404040;
-  overflow: hidden;
+  overflow: hidden; /* Important for nested flex layouts */
+}
+
+.main-window-body {
+  display: flex;
+  flex-direction: row; /* ChatReference and main-content-panel side-by-side */
+  flex-grow: 1; /* Takes remaining vertical space below MenuBar */
+  overflow: hidden; /* Important */
+}
+
+/* The panel to the right of ChatReference */
+.main-content-panel {
+  flex-grow: 1; /* Takes up remaining horizontal space */
+  display: flex;
+  flex-direction: column; /* Lays out its children (toolbar, headers, content-area) vertically */
+  /* background: #c0c0c0; /* Background is inherited from main-window or can be set if different */
+  overflow: hidden; /* Important for its own content scrolling */
+  /* No border or shadow needed here as main-window provides the outer frame */
 }
 
 .header-bar {
@@ -172,6 +189,8 @@ button:hover {
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 465px;
+  overflow-y: scroll;
 }
 
 .chat-messages {
@@ -254,3 +273,40 @@ button:hover {
   word-wrap: break-word;
   max-width: 75px;
 }
+/* toolbar at top of chat content, right-aligned */
+.chat-toolbar {
+  display: flex;
+  justify-content: flex-start; /* Aligns button to the left */
+  padding: 5px 8px; /* Add some padding */
+  /* background: #c0c0c0; /* Optional: if it needs its own background strip */
+}
+
+/* the Chats toggle button */
+.toggle-chat-ref-button {
+  background: #808080;
+  border: 2px outset #c0c0c0;
+  color: #fff;
+  font-family: "w95-typeface";
+  padding: 2px 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.toggle-chat-ref-button:hover {
+  background: #404040;
+}
+
+/* wrapper for bottom row: chat-picker + input */
+.chat-bottom {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* make the input flex to fill remaining space */
+.chat-input-container {
+  flex: 1;
+}
+
+/* you already have .chat-input styling; it will live inside this container */

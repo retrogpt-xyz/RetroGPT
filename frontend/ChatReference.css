@@ -1,0 +1,44 @@
+/* Win95-style panel */
+.chat-reference {
+    background: #fff;
+    /* Border on the right to separate it from the main content */
+    border-right: 2px solid #000; /* Or #808080 for a softer look */
+    /* Optional: subtle inner shadow for depth */
+    box-shadow: inset -1px 0 0 #808080;
+    padding: 6px;
+    width: 220px; /* Desired width of the sidebar */
+    overflow-y: auto;
+    font-family: "w95-typeface";
+    flex-shrink: 0; /* Prevent the sidebar from shrinking */
+    /* Height will be determined by the flex container (.main-window-body) */
+  }
+  
+  /* each row */
+  .chat-ref-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px;
+    cursor: pointer;
+  }
+  
+  /* hover highlight */
+  .chat-ref-item:hover {
+    background: #808080;
+    color: #fff;
+  }
+  
+  /* icons */
+  .chat-ref-plus,
+  .chat-ref-icon {
+    display: block;
+    width: 12px;
+    height: 12px;
+  }
+  
+  /* text */
+  .chat-ref-name {
+    font-size: 12px;
+    user-select: none;
+  }
+  

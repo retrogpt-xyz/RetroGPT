@@ -1,4 +1,3 @@
-// CDPlayer.tsx
 import React, {
   useState,
   useRef,
@@ -10,7 +9,7 @@ import "./MusicPlayer.css";
 
 type Track = { url: string; name: string };
 
-const playlists = ["Retro Vibes", "Classic Rock", "Chill Beats"];
+const playlists = ["Retro Vibes", "Throwback Pop", "New Wave"];
 
 const CDPlayer: React.FC = () => {
   // audio / track state
@@ -20,7 +19,7 @@ const CDPlayer: React.FC = () => {
   const [time, setTime] = useState(0);
 
   // drag state
-  const [position, setPosition] = useState({ x: 100, y: 100 });
+  const [position, setPosition] = useState({ x: 100, y: 500 });
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
