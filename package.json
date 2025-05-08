@@ -14,6 +14,7 @@
     "@effect/platform-browser": "^0.59.5",
     "@react-oauth/google": "^0.12.1",
     "effect": "^3.14.4",
+    "katex": "^0.16.22",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

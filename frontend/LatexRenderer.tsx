@@ -10,13 +10,15 @@ interface LatexRendererProps {
 const LatexRenderer: React.FC<LatexRendererProps> = ({ text }) => {
   // Regex to find LaTeX blocks.
   // This regex looks for:
-  // 1. $$...$$ (display math)
-  // 2. \[...\] (display math, LaTeX standard)
-  // 3. \(...\) (inline math, LaTeX standard)
+  // 1. $...$ (inline math)
+  // 2. $$...$$ (display math)
+  // 3. \[...\] (display math, LaTeX standard)
+  // 4. \(...\) (inline math, LaTeX standard)
   // The 'g' flag finds all occurrences.
   // The 's' flag (dotall) is not directly supported in all JS environments for lookbehinds,
   // so we use [\s\S]*? to match any character including newlines, non-greedily.
-  const latexRegex = /(\$\$[\s\S]*?\$\$|\\[[\s\S]*?\\]|\\\(.*?\\\))/g;
+  // We need to be careful with single $ to avoid false positives in regular text with currency.
+  const latexRegex = /(\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g;
 
   // Split the text by the LaTeX blocks, keeping the delimiters.
   // The filter(part => part) removes empty strings that can result from splitting.
@@ -33,6 +35,10 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({ text }) => {
           isLatex = true;
           displayMode = true;
           latexContent = part.substring(2, part.length - 2); // Remove $$
+        } else if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
+          isLatex = true;
+          displayMode = false; // Single $ is for inline math
+          latexContent = part.substring(1, part.length - 1); // Remove $
         } else if (part.startsWith('\\[') && part.endsWith('\\]')) {
           isLatex = true;
           displayMode = true;
