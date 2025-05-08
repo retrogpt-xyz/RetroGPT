@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { get_api_host } from "./request";
 
@@ -8,6 +8,8 @@ import Dock from "./Dockbar";
 import Files from "./FileExplorer";
 import Music from "./MusicPlayer";
 import * as Api from "./Api";
+import ChatReference from "./ChatReference";
+import LatexRenderer from "./LatexRenderer";
 import {
   getSessionTokenCookieWrapper,
   setSessionTokenCookieWrapper,
@@ -29,11 +31,12 @@ React;
 function App() {
   const [windowVisible, setWindowVisible] = useState(true);
   const [showFileExplorer, setShowFileExplorer] = useState(false);
-  const [_, setShowPlayer] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [chatId, setChatId] = useState<number | null>(null);
+  const [showChatRef, setShowChatRef] = useState(false);
 
   const [userId, setUserId] = useState<number | null>(null);
 
@@ -62,6 +65,10 @@ function App() {
       setUserId(user_id);
     }
   };
+  const handleSelectChat = (id: number) => {
+        setChatId(id);
+        setShowChatRef(false);
+      };
 
   const login = useGoogleLogin({
     onSuccess: async (user_access_token) => {
@@ -179,64 +186,91 @@ function App() {
       <div>
         <Dock />
       </div>
-      <div>
-        <Music />
-      </div>
-
-      {/* Center window - Chat Interface */}
-      {windowVisible && ( // <-- Conditionally render main window
+      {showPlayer && (
+          <Music
+           />
+      )}
+      
+    
+      {windowVisible && (
         <div className="main-window">
-          <div>
-            <MenuBar
-              chatId={chatId}
-              setChatId={setChatId}
-              userOwnedChats={userOwnedChats} // Pass the state value, not the setter - (Note: This comment is incorrect, it's passing the state array itself, which is correct)
-              login={login}
-              logout={logout}
-              setWindowVisible={setWindowVisible}
-              syncUserOwnedChats={syncUserOwnedChats}
+          
+          <MenuBar
+            chatId={chatId}
+            setChatId={setChatId}
+            userOwnedChats={userOwnedChats}
+            login={login}
+            logout={logout}
+            setWindowVisible={setWindowVisible}
+            syncUserOwnedChats={syncUserOwnedChats}
+          />
+
+          
+          <div className="main-window-body">
+            <ChatReference
+              visible={showChatRef}
+              chats={userOwnedChats}
+              onSelectChat={handleSelectChat}
             />
-            <div>
-              <Files
-                visible={showFileExplorer}
-                onClose={() => setShowFileExplorer(false)}
-              />
-            </div>
-            <div className="header-bar">WELCOME TO RETROGPT</div>
-            <div className="header-under">How can I help?</div>
-            <div className="content-area">
-              <div className="chat-window">
-                <div className="chat-messages">
-                  {displayMessages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`chat-message ${
-                        message.sender === "user"
-                          ? "user-message"
-                          : "ai-message"
-                      }`}
-                    >
-                      {message.text}
-                    </div>
-                  ))}
-                </div>
-                <div className="chat-input">
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="Type your message..."
-                  />
-                  <button onClick={handleSendMessage}>Send</button>
+
+           
+            <div className="main-content-panel">
+              
+              <div>
+                <Files
+                  visible={showFileExplorer}
+                  onClose={() => setShowFileExplorer(false)}
+                />
+              </div>
+
+              {/* Chat toggle button now inside the main-content-panel, at its top-left */}
+              <div className="chat-toolbar">
+                <button
+                  className="toggle-chat-ref-button"
+                  onClick={() => setShowChatRef((v) => !v)}
+                >
+                  Show Chats
+                </button>
+              </div>
+
+              <div className="header-bar">WELCOME TO RETROGPT</div>
+              <div className="header-under">How can I help?</div>
+              <div className="content-area">
+                <div className="chat-window">
+                  <div className="chat-messages">
+                    {displayMessages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`chat-message ${
+                          message.sender === "user"
+                            ? "user-message"
+                            : "ai-message"
+                        }`}
+                      >
+                        <LatexRenderer text={message.text} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="chat-input">
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Type your message..."
+                    />
+                    <button onClick={handleSendMessage}>Send</button>
+                  </div>
                 </div>
               </div>
             </div>
+            {/* End of main-content-panel */}
           </div>
+          {/* End of main-window-body */}
         </div>
       )}
       {/* Right column with app icons */}
@@ -247,7 +281,7 @@ function App() {
               url: "https://64.media.tumblr.com/3ea96a37f9c508e9c7ca7f95c2d9e5c6/32f4c776e65ab1bc-a7/s540x810/7e9ac2c7bcb1c31e20ca09649e7d96fb09982fd8.png",
               name: "Music",
               onClick: () => {
-                () => setShowPlayer((v) => !v); // Toggle window visibility
+                setShowPlayer((v) => !v); // Corrected toggle logic
               },
             },
             {
